@@ -99,10 +99,10 @@ class APCNN(object):
             # Use tf high level API tf.layers
             pooled_outputs = []
             for i, filter_size in enumerate(self.filter_sizes):
-                with tf.variable_scope("conv"):
-                    conv = tf.layers.conv1d(inputs, self.num_filters, filter_size, padding="same")  # (batch_size, seq_length，num_filters)
-                    conv = tf.nn.relu(conv)
-                    pooled_outputs.append(conv)
+                conv = tf.layers.conv1d(inputs, self.num_filters, filter_size,
+                                        padding="same")  # (batch_size, seq_length，num_filters)
+                conv = tf.nn.relu(conv)
+                pooled_outputs.append(conv)
             # Combine all the features
             outputs = tf.concat(pooled_outputs, 2, name="output")  # (batch_size, seq_length, num_filters_total)
             if self.mode == "train":
@@ -145,17 +145,18 @@ class APCNN(object):
             char_embed1 = tf.nn.embedding_lookup(self.char_embedding, self.char_ids1, "char_embed1")
             char_embed2 = tf.nn.embedding_lookup(self.char_embedding, self.char_ids2, "char_embed2")
 
-            word_rep1 = self.textcnn(word_embed1, tf.AUTO_REUSE, "word")
-            word_rep2 = self.textcnn(word_embed2, tf.AUTO_REUSE, "word")
+            # TODO: query-question encoder do not share weights.
+            word_rep1 = self.textcnn(word_embed1, False, "word1")
+            word_rep2 = self.textcnn(word_embed2, False, "word2")
 
-            char_rep1 = self.textcnn(char_embed1, tf.AUTO_REUSE, "char")
-            char_rep2 = self.textcnn(char_embed2, tf.AUTO_REUSE, "char")
+            char_rep1 = self.textcnn(char_embed1, False, "char1")
+            char_rep2 = self.textcnn(char_embed2, False, "char2")
 
             # sent_merge1 = tf.concat([word_rep1, char_rep1], axis=1, name="sent_merge1")
             # sent_merge2 = tf.concat([word_rep2, char_rep2], axis=1, name="sent_merge2")
 
             word_reps_seq1, word_reps_seq2 = self.attentive_pooling(word_rep1, word_rep2, tf.AUTO_REUSE, "word")
-            char_reps_seq1, char_reps_seq2 = self.attentive_pooling(char_rep1, char_rep2, tf.AUTO_REUSE, "word")
+            char_reps_seq1, char_reps_seq2 = self.attentive_pooling(char_rep1, char_rep2, tf.AUTO_REUSE, "char")
 
             reps_concat = tf.concat([word_reps_seq1, word_reps_seq2, char_reps_seq1, char_reps_seq2], axis=1)
 
