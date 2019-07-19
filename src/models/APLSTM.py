@@ -8,11 +8,11 @@ from __future__ import print_function
 from __future__ import absolute_import
 
 import logging
-from functools import reduce
 
 import tensorflow as tf
 
 from utils import model_helper
+from utils import misc_utils
 
 logger = logging.getLogger(__name__)
 
@@ -257,12 +257,6 @@ class APLSTM(object):
     def add_saver(self):
         self.saver = tf.train.Saver(tf.global_variables(), max_to_keep=self.num_keep_ckpts)
 
-    def print_params(self):
-        params = tf.trainable_variables()
-        logger.info("# Training variables")
-        for param in params:
-            logging.info("  %s, %s, %s" % (param.name, str(param.get_shape()), param.op.device))
-
     def build(self):
         self.add_placeholders()
         self.build_graph()
@@ -270,7 +264,7 @@ class APLSTM(object):
         self.add_train_op()
         self.add_summary()
         self.add_saver()
-        self.print_params()
+        misc_utils.print_params()
 
     def train(self, sess, b_word_ids1, b_word_ids2, b_word_len1, b_word_len2,
               b_char_ids1, b_char_ids2, b_char_len1, b_char_len2, b_labels):

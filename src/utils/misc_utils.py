@@ -3,6 +3,7 @@ import logging
 import os
 import codecs
 import json
+from functools import reduce
 
 import tensorflow as tf
 
@@ -31,6 +32,17 @@ def get_config_proto(log_device_placement=False, allow_soft_placement=True,
         config_proto.inter_op_parallelism_threads = num_inter_threads
 
     return config_proto
+
+
+def print_params():
+    def size(v):
+        return reduce(lambda x, y: x * y, v.get_shape().as_list())
+
+    params = tf.trainable_variables()
+    logger.info("# Training variables")
+    for param in params:
+        logging.info("  %s, %s, %s" % (param.name, str(param.get_shape()), param.device))
+    logging.info("# Total model size: %d" % (sum(size(v) for v in tf.trainable_variables())))
 
 
 def print_hparams(hparams, skip_patterns=None, header=None):
