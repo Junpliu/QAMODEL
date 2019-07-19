@@ -1,0 +1,8 @@
+/.idea
+*.iml
+*.xml
+src/data
+src/figures
+src/logs/
+src/model
+*.pyc
