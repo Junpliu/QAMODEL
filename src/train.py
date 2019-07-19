@@ -25,6 +25,8 @@ def run_eval(config, eval_model, eval_sess, eval_data, model_dir, ckpt_name, sav
     pred_file = os.path.join(model_dir, output_file)
     logger.info("  predictions to output %s." % pred_file)
 
+    summary_writer = tf.summary.FileWriter(os.path.join(model_dir, "eval_log"), eval_model.graph)
+
     eval_iterator = data_helper.batch_iterator(eval_data, batch_size=config.batch_size, shuffle=False)
 
     with eval_model.graph.as_default():
@@ -46,7 +48,7 @@ def run_eval(config, eval_model, eval_sess, eval_data, model_dir, ckpt_name, sav
             try:
                 b_word_ids1, b_word_ids2, b_word_len1, b_word_len2, b_char_ids1, b_char_ids2, b_char_len1, b_char_len2, b_labels = next(
                     eval_iterator)
-                pred, step_loss, acc_op, rec_op, pre_op, auc_op = \
+                eval_summary1, pred, step_loss, acc_op, rec_op, pre_op, auc_op = \
                     loaded_eval_model.eval(eval_sess, b_word_ids1, b_word_ids2, b_word_len1, b_word_len2,
                                            b_char_ids1, b_char_ids2, b_char_len1, b_char_len2, b_labels)
                 pred_labels.extend(pred)
@@ -58,7 +60,9 @@ def run_eval(config, eval_model, eval_sess, eval_data, model_dir, ckpt_name, sav
             pred_f.write(res)
     pred_f.close()
 
-    acc, rec, pre, auc = eval_sess.run([loaded_eval_model.accuracy,
+    eval_summary2, acc, rec, pre, auc = eval_sess.run([
+                                        loaded_eval_model.eval_summary2,
+                                        loaded_eval_model.accuracy,
                                         loaded_eval_model.recall,
                                         loaded_eval_model.precision,
                                         loaded_eval_model.auc])
@@ -70,6 +74,10 @@ def run_eval(config, eval_model, eval_sess, eval_data, model_dir, ckpt_name, sav
               "auc": auc}
 
     logging.info("# eval acc %.4f rec %.4f pre %.4f f1 %.4f auc %.4f" % (acc, rec, pre, f1, auc))
+
+    summary_writer.add_summary(eval_summary1, global_step=global_step)
+    summary_writer.add_summary(eval_summary2, global_step=global_step)
+    summary_writer.close()
 
     for metric in config.metrics.split(","):
         best_metric_label = "best_%s" % metric
@@ -220,11 +228,12 @@ def train(config, model_creator):
             b_word_ids1, b_word_ids2, b_word_len1, b_word_len2, b_char_ids1, b_char_ids2, b_char_len1, b_char_len2, b_labels = batch
             # for b in batch:
             #     print(b)
-            pred, step_loss, _, acc_op, rec_op, pre_op, auc_op, global_step, grad_norm, lr, sim = \
+            train_summary1, pred, step_loss, _, acc_op, rec_op, pre_op, auc_op, global_step, grad_norm, lr, sim = \
                 loaded_train_model.train(train_sess, b_word_ids1, b_word_ids2, b_word_len1, b_word_len2,
                                          b_char_ids1, b_char_ids2, b_char_len1, b_char_len2, b_labels)
-            step_acc, step_rec, step_pre, step_auc = \
-                train_sess.run([loaded_train_model.accuracy,
+            train_summary2, step_acc, step_rec, step_pre, step_auc = \
+                train_sess.run([loaded_train_model.train_summary2,
+                                loaded_train_model.accuracy,
                                 loaded_train_model.recall,
                                 loaded_train_model.precision,
                                 loaded_train_model.auc])
@@ -259,7 +268,8 @@ def train(config, model_creator):
                 "  step %d lr %g step_time %.2fs loss %.4f acc %.4f rec %.4f pre %.4f f1 %.4f auc %.4f gN %.2f" %
                 (global_step, lr, step_time, train_loss, train_acc, train_rec, train_pre, train_f1, train_auc,
                  grad_norm))
-            # summary_writer.add_summary(summary, global_step=global_step)
+            summary_writer.add_summary(train_summary1, global_step=global_step)
+            summary_writer.add_summary(train_summary2, global_step=global_step)
             step_time, train_loss, train_acc, train_rec, train_pre, train_f1, train_auc, gN = 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
 
         if global_step - last_eval_step >= steps_per_eval:
