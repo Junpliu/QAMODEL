@@ -167,18 +167,17 @@ def total_metric(input_path, output_path, thr):
 # metric("./model/SCWLSTM/output_test", 0.9)
 # metric("./model/SCWLSTM/output_test", 0.89)
 
-# metric("./model/ARCII/output_test", 0.1)
-# metric("./model/ARCII/output_test", 0.2)
-# metric("./model/ARCII/output_test", 0.3)
-# metric("./model/ARCII/output_test", 0.4)
-# metric("./model/ARCII/output_test", 0.5)
-# metric("./model/ARCII/output_test", 0.6)
-# metric("./model/ARCII/output_test", 0.7)
-# metric("./model/ARCII/output_test", 0.8)
+metric("./model/ARCII/output_test", 0.05)
+metric("./model/ARCII/output_test", 0.1)
+metric("./model/ARCII/output_test", 0.2)
+metric("./model/ARCII/output_test", 0.3)
+metric("./model/ARCII/output_test", 0.4)
+metric("./model/ARCII/output_test", 0.5)
+metric("./model/ARCII/output_test", 0.6)
+metric("./model/ARCII/output_test", 0.7)
+metric("./model/ARCII/output_test", 0.8)
 metric("./model/ARCII/output_test", 0.9)
 metric("./model/ARCII/output_test", 0.95)
-
-
 metric("./model/ARCII/output_test", 0.99)
 
 # total_metric("./model/TextCNN/output_test", "./result/qq_simscore/TextCNN/result.txt", 0.5)
