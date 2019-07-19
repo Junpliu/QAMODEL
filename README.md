@@ -33,3 +33,6 @@ FastText :  [Bag of Tricks for Efficient Text Classification](https://arxiv.org/
 
 TextCNN : [Convolutional Neural Networks for Sentence Classification](https://arxiv.org/pdf/1408.5882.pdf)
 
+### 模型框架图
+
+![](src/fig/QQ.png)
