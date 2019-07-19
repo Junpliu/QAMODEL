@@ -41,6 +41,8 @@ def run_eval(config, eval_model, eval_sess, eval_data, model_dir, ckpt_name, sav
         eval_sess.run(tf.local_variables_initializer())
 
     pred_labels = []
+    eval_loss = 0.0
+    step = 0
     lines = open(config.dev_file, "r", encoding="utf-8").readlines()
     with open(pred_file, mode="w", encoding="utf-8") as pred_f:
         pred_f.write("")
@@ -52,6 +54,8 @@ def run_eval(config, eval_model, eval_sess, eval_data, model_dir, ckpt_name, sav
                     loaded_eval_model.eval(eval_sess, b_word_ids1, b_word_ids2, b_word_len1, b_word_len2,
                                            b_char_ids1, b_char_ids2, b_char_len1, b_char_len2, b_labels)
                 pred_labels.extend(pred)
+                eval_loss += step_loss
+                step += 1
             except StopIteration:
                 break
 
@@ -59,6 +63,8 @@ def run_eval(config, eval_model, eval_sess, eval_data, model_dir, ckpt_name, sav
             res = line.strip() + "\t" + str(p) + "\n"
             pred_f.write(res)
     pred_f.close()
+
+    eval_loss /= step
 
     eval_summary2, acc, rec, pre, auc = eval_sess.run([
                                         loaded_eval_model.eval_summary2,
@@ -73,7 +79,7 @@ def run_eval(config, eval_model, eval_sess, eval_data, model_dir, ckpt_name, sav
               "f1": f1,
               "auc": auc}
 
-    logging.info("# eval acc %.4f rec %.4f pre %.4f f1 %.4f auc %.4f" % (acc, rec, pre, f1, auc))
+    logging.info("# eval loss %.4f acc %.4f rec %.4f pre %.4f f1 %.4f auc %.4f" % (eval_loss, acc, rec, pre, f1, auc))
 
     summary_writer.add_summary(eval_summary1, global_step=global_step)
     summary_writer.add_summary(eval_summary2, global_step=global_step)

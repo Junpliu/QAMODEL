@@ -8,6 +8,7 @@ from __future__ import print_function
 from __future__ import absolute_import
 
 import logging
+from functools import reduce
 
 import tensorflow as tf
 
@@ -157,15 +158,16 @@ class APLSTM(object):
             char_embed1 = tf.nn.embedding_lookup(self.char_embedding, self.char_ids1, "char_embed1")
             char_embed2 = tf.nn.embedding_lookup(self.char_embedding, self.char_ids2, "char_embed2")
 
+            # TODO: query / question do not share weights
             word_out1, word_rep1 = self.bi_rnn(word_embed1, self.word_len1, self.num_units,
-                                               self.unit_type, self.dtype, tf.AUTO_REUSE, "word")
+                                               self.unit_type, self.dtype, False, "word1")
             word_out2, word_rep2 = self.bi_rnn(word_embed2, self.word_len2, self.num_units,
-                                               self.unit_type, self.dtype, tf.AUTO_REUSE, "word")
+                                               self.unit_type, self.dtype, False, "word2")
 
             char_out1, char_rep1 = self.bi_rnn(char_embed1, self.char_len1, self.num_units,
-                                               self.unit_type, self.dtype, tf.AUTO_REUSE, "char")
+                                               self.unit_type, self.dtype, False, "char1")
             char_out2, char_rep2 = self.bi_rnn(char_embed2, self.char_len2, self.num_units,
-                                               self.unit_type, self.dtype, tf.AUTO_REUSE, "char")
+                                               self.unit_type, self.dtype, False, "char2")
 
             # sent_merge1 = tf.concat([word_rep1, char_rep1], axis=1, name="sent_merge1")
             # sent_merge2 = tf.concat([word_rep2, char_rep2], axis=1, name="sent_merge2")
