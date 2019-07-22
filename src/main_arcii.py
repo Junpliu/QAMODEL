@@ -48,7 +48,7 @@ flags.DEFINE_string("opt", "adam", "Optimizer: adam | adadelta | adagrad | sgd |
 flags.DEFINE_float("max_gradient_norm", 5.0, "Clip gradients to this norm.")
 flags.DEFINE_integer("batch_size", 64, "Batch size. (default: 128)")
 flags.DEFINE_integer("epoch_step", 0, "Record where we were within an epoch.")
-# flags.DEFINE_string("num_train_epochs", 1, "Num epochs to train.")
+flags.DEFINE_integer("num_train_epochs", 20, "Num epochs to train.")
 flags.DEFINE_integer("num_keep_ckpts", 5, "Max number fo checkpoints to keep.")
 flags.DEFINE_integer("num_train_steps", 20000, "Num epochs to train.")
 flags.DEFINE_integer("steps_per_stats", 100, "How many training steps to do per stats logging.")

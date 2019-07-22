@@ -224,7 +224,7 @@ def train(config, model_creator):
     logger.info("# Start step %d" % global_step)
 
     epoch_idx = 0
-    while global_step < config.num_train_steps:
+    while epoch_idx < config.num_train_epochs:
         start_time = time.time()
         try:
             # TODO: tf.metrics
