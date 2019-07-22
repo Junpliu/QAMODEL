@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # import tensorflow as tf
 # import numpy as np
 #
@@ -306,45 +307,45 @@
 # print(sess.run(a))
 # print(sess.run(b))
 
-
-import numpy as np
-import tensorflow as tf
-
-labels = np.array([[1, 1, 1, 0],
-                   [1, 1, 1, 0],
-                   [1, 1, 1, 0],
-                   [1, 1, 1, 0]], dtype=np.uint8)
-predictions = np.array([[1, 0, 0, 0],
-                        [1, 1, 0, 0],
-                        [1, 1, 1, 0],
-                        [0, 1, 1, 1]], dtype=np.uint8)
-n_batches = len(labels)
-
-graph = tf.Graph()
-with graph.as_default():
-    # Placeholders to take in batches onf data
-    tf_label = tf.placeholder(dtype=tf.int32, shape=[None])
-    tf_prediction = tf.placeholder(dtype=tf.int32, shape=[None])
-    # Define the metric and update operations
-    tf_metric, tf_metric_update = tf.metrics.accuracy(tf_label,
-                                                      tf_prediction,
-                                                      name="my_metric")
-    tf.summary.scalar("acc", tf_metric)
-    merged = tf.summary.merge_all()
-    # Isolate the variables stored behind the scenes by the metric operation
-    running_vars = tf.get_collection(tf.GraphKeys.LOCAL_VARIABLES, scope="my_metric")
-    # Define initializer to initialize/reset running variables
-    running_vars_initializer = tf.variables_initializer(var_list=running_vars)
-
-with tf.Session(graph=graph) as session:
-    session.run(tf.global_variables_initializer())
-    for i in range(n_batches):
-        # Reset the running variables
-        session.run(running_vars_initializer)
-        # Update the running variables on new batch of samples
-        feed_dict = {tf_label: labels[i], tf_prediction: predictions[i]}
-        session.run(tf_metric_update, feed_dict=feed_dict)
-        # Calculate the score on this batch
-        summary, score = session.run([merged, tf_metric])
-        print("[TF] batch {} score: {}".format(i, score))
-        print(summary)
+#
+# import numpy as np
+# import tensorflow as tf
+#
+# labels = np.array([[1, 1, 1, 0],
+#                    [1, 1, 1, 0],
+#                    [1, 1, 1, 0],
+#                    [1, 1, 1, 0]], dtype=np.uint8)
+# predictions = np.array([[1, 0, 0, 0],
+#                         [1, 1, 0, 0],
+#                         [1, 1, 1, 0],
+#                         [0, 1, 1, 1]], dtype=np.uint8)
+# n_batches = len(labels)
+#
+# graph = tf.Graph()
+# with graph.as_default():
+#     # Placeholders to take in batches onf data
+#     tf_label = tf.placeholder(dtype=tf.int32, shape=[None])
+#     tf_prediction = tf.placeholder(dtype=tf.int32, shape=[None])
+#     # Define the metric and update operations
+#     tf_metric, tf_metric_update = tf.metrics.accuracy(tf_label,
+#                                                       tf_prediction,
+#                                                       name="my_metric")
+#     tf.summary.scalar("acc", tf_metric)
+#     merged = tf.summary.merge_all()
+#     # Isolate the variables stored behind the scenes by the metric operation
+#     running_vars = tf.get_collection(tf.GraphKeys.LOCAL_VARIABLES, scope="my_metric")
+#     # Define initializer to initialize/reset running variables
+#     running_vars_initializer = tf.variables_initializer(var_list=running_vars)
+#
+# with tf.Session(graph=graph) as session:
+#     session.run(tf.global_variables_initializer())
+#     for i in range(n_batches):
+#         # Reset the running variables
+#         session.run(running_vars_initializer)
+#         # Update the running variables on new batch of samples
+#         feed_dict = {tf_label: labels[i], tf_prediction: predictions[i]}
+#         session.run(tf_metric_update, feed_dict=feed_dict)
+#         # Calculate the score on this batch
+#         summary, score = session.run([merged, tf_metric])
+#         print("[TF] batch {} score: {}".format(i, score))
+#         print(summary)

@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """Utility to handle vocabulary."""
 from __future__ import absolute_import

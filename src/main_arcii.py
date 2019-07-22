@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
 Date: 2019-07-11
@@ -28,17 +29,17 @@ flags = tf.flags
 FLAGS = flags.FLAGS
 
 # save model path
-flags.DEFINE_string("model_dir", "model/qq_simscore/ARCII", "model path")
+flags.DEFINE_string("model_dir", "/ceph/qbkg/aitingliu/qq/src/model/qq_simscore/ARCII", "model path")
 
 # data file path
-flags.DEFINE_string("train_file", "data/qq_simscore/train.txt", "Training data file.")
-flags.DEFINE_string("dev_file", "data/qq_simscore/dev.txt", "Development data file.")
-flags.DEFINE_string("test_file", "data/qq_simscore/test.txt", "Test data file.")
-flags.DEFINE_string("infer_file", "data/qq_simscore/test.txt", "Test data file.")
-flags.DEFINE_string("word_vocab_file", "data/qq_simscore/word.txt", "Word vocabulary file.")
-flags.DEFINE_string("char_vocab_file", "data/qq_simscore/char.txt", "Char vocabulary file.")
+flags.DEFINE_string("train_file", "/ceph/qbkg/aitingliu/qq/src/data/qq_simscore/train.txt", "Training data file.")
+flags.DEFINE_string("dev_file", "/ceph/qbkg/aitingliu/qq/src/data/qq_simscore/dev.txt", "Development data file.")
+flags.DEFINE_string("test_file", "/ceph/qbkg/aitingliu/qq/src/data/qq_simscore/test.txt", "Test data file.")
+flags.DEFINE_string("infer_file", "/ceph/qbkg/aitingliu/qq/src/data/qq_simscore/test.txt", "Test data file.")
+flags.DEFINE_string("word_vocab_file", "/ceph/qbkg/aitingliu/qq/src/data/qq_simscore/word.txt", "Word vocabulary file.")
+flags.DEFINE_string("char_vocab_file", "/ceph/qbkg/aitingliu/qq/src/data/qq_simscore/char.txt", "Char vocabulary file.")
 flags.DEFINE_string("word_embed_file", None, "Pretrained embedding file.")
-flags.DEFINE_string("ckpt_name", "ARCII.ckpt", "Checkpoint file name.")
+flags.DEFINE_string("ckpt_name", "arcii.ckpt", "Checkpoint file name.")
 
 # train
 flags.DEFINE_integer("random_seed", 1213, "Random seed (>0, set a specific seed).")
@@ -77,7 +78,7 @@ flags.DEFINE_integer("char_vocab_size", 4000, "Char vocabulary size.")
 # flags.DEFINE_string("unit_type", "lstm", "RNN type: lstm | gru | layer_norm_lstm")
 # flags.DEFINE_string("filter_sizes", "3,4,5", "CNN filter sizes.")
 flags.DEFINE_integer("num_filters", 100, "Number of filters.")
-flags.DEFINE_integer("fc_size", 128, "Fully connected layer hidden size. (default: 1024)")
+flags.DEFINE_integer("fc_size", 512, "Fully connected layer hidden size. (default: 1024)")
 flags.DEFINE_integer("num_classes", 2, "Number of classes.")
 flags.DEFINE_float("dropout", 0.3, "Dropout rate (not keep_prob) default: 0.3)")
 flags.DEFINE_float("l2_reg_lambda", 0.0, "L2 regularization lambda (default: 0.0)")
@@ -85,7 +86,7 @@ flags.DEFINE_float("l2_reg_lambda", 0.0, "L2 regularization lambda (default: 0.0
 # train/inference/evaluate flag
 flags.DEFINE_boolean("train", True, "train mode")
 flags.DEFINE_boolean("infer", False, "infer mode")
-flags.DEFINE_boolean("test", False, "test mode")
+flags.DEFINE_boolean("test", True, "test mode")
 
 
 def update_config(config):
