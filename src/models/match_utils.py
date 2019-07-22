@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 Borrow from https://github.com/zhiguowang/BiMPM
 
