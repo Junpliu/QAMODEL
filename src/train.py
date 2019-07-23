@@ -21,12 +21,12 @@ from utils import data_helper
 logger = logging.getLogger(__name__)
 
 
-def run_eval(config, eval_model, eval_sess, eval_data, model_dir, ckpt_name, save_on_best=True):
+def run_eval(config, eval_model, eval_sess, eval_data, model_dir, ckpt_name, summary_writer, save_on_best=True):
     output_file = "output_" + os.path.split(config.dev_file)[-1].split(".")[0]
     pred_file = os.path.join(model_dir, output_file)
     logger.info("  predictions to output %s." % pred_file)
 
-    summary_writer = tf.summary.FileWriter(os.path.join(model_dir, "eval_log"), eval_model.graph)
+    # summary_writer = tf.summary.FileWriter(os.path.join(model_dir, "eval_log"), eval_model.graph)
 
     eval_iterator = data_helper.batch_iterator(eval_data, batch_size=config.batch_size, shuffle=False)
 
@@ -84,7 +84,7 @@ def run_eval(config, eval_model, eval_sess, eval_data, model_dir, ckpt_name, sav
 
     summary_writer.add_summary(eval_summary1, global_step=global_step)
     summary_writer.add_summary(eval_summary2, global_step=global_step)
-    summary_writer.close()
+    # summary_writer.close()
 
     for metric in config.metrics.split(","):
         best_metric_label = "best_%s" % metric
@@ -207,6 +207,7 @@ def train(config, model_creator):
 
     # Summary Writer
     summary_writer = tf.summary.FileWriter(os.path.join(model_dir, "train_log"), train_model.graph)
+    eval_summary_writer = tf.summary.FileWriter(os.path.join(model_dir, "eval_log"), eval_model.graph)
 
     with train_model.graph.as_default():
         loaded_train_model, global_step = model_helper.create_or_load_model(
@@ -284,7 +285,7 @@ def train(config, model_creator):
             # Save checkpoint
             loaded_train_model.saver.save(train_sess, ckpt_path, global_step=global_step)
             # Evaluate on dev
-            run_eval(config, eval_model, eval_sess, eval_data, model_dir, ckpt_name=ckpt_name, save_on_best=True)
+            run_eval(config, eval_model, eval_sess, eval_data, model_dir, ckpt_name, eval_summary_writer, save_on_best=True)
 
     logger.info("# Finished epoch %d, step %d." % (epoch_idx, global_step))
 
@@ -295,3 +296,4 @@ def train(config, model_creator):
     logger.info("# Done training!")
 
     summary_writer.close()
+    eval_summary_writer.close()
