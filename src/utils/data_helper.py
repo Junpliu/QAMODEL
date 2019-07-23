@@ -13,8 +13,8 @@ import collections
 import numpy as np
 import sklearn
 
-# from . import vocab_utils
-import vocab_utils
+from . import vocab_utils
+# import vocab_utils
 
 logger = logging.getLogger(__name__)
 
@@ -302,7 +302,7 @@ def data_to_triplet(in_path, out_path):
 # data_to_triplet(raw_data_file, triplet_data_file)
 
 
-def split_triplet_data(raw_file, train_file, dev_file, test_file, dev_ratio=0.1, test_ratio=0.1):
+def split_triplet_data(raw_file, train_file, dev_file, test_file, infer_file, dev_ratio=0.1, test_ratio=0.1):
     """split data into train/dev/test"""
     d = {}
     for line in read_file(raw_file):
@@ -326,19 +326,30 @@ def split_triplet_data(raw_file, train_file, dev_file, test_file, dev_ratio=0.1,
     train = lines[:-(test_num + dev_num)]
     dev = lines[-(test_num + dev_num):-test_num]
     test = lines[-test_num:]
+
+    infer = set()
+    for line in test:
+        q, q1, q2 = line.strip().split("\t")
+        infer.add("{}\t{}\t{}\n".format(q, q1, "1"))
+        infer.add("{}\t{}\t{}\n".format(q, q2, "0"))
+    infer = list(infer)
+
     print("# train\tset\t%d" % len(train))
     print("# dev\tset\t%d" % len(dev))
     print("# test\tset\t%d" % len(test))
     open(train_file, "w", encoding="utf-8").writelines(train)
     open(dev_file, "w", encoding="utf-8").writelines(dev)
     open(test_file, "w", encoding="utf-8").writelines(test)
+    open(infer_file, "w", encoding="utf-8").writelines(infer)
 
 
 # raw_data_file = "../data/qq_simscore/triplet/triplet.txt"
 # train_data_file = "../data/qq_simscore/triplet/train.txt"
 # dev_data_file = "../data/qq_simscore/triplet/dev.txt"
 # test_data_file = "../data/qq_simscore/triplet/test.txt"
-# split_triplet_data(raw_data_file, train_data_file, dev_data_file, test_data_file)
+# infer_data_file = "../data/qq_simscore/triplet/infer.txt"
+# split_triplet_data(raw_data_file, train_data_file, dev_data_file, test_data_file, infer_data_file)
+
 
 class Data(collections.namedtuple("Data", ("words1", "words_len1", "chars1", "chars_len1",
                                            "words2", "words_len2", "chars2", "chars_len2",
@@ -378,10 +389,8 @@ def load_triplet_data(data_file,
             text1, text2 = line[0], line[1]
             label = int(line[2])
             labels.append(label)
-        elif mode == "train" or mode == "eval":
-            text1, text2, text3 = line.split(split)
         else:
-            print("Unknown mode!!!")
+            text1, text2, text3 = line.split(split)
 
         ## text to list
         wordlist1 = vocab_utils.text_to_word_list(text1, split=text_split)
@@ -434,7 +443,7 @@ def load_triplet_data(data_file,
         chars_len2.append(char_len2)
 
         # TODO: text3
-        if mode == "train" or mode == "eval":
+        if mode != "infer":
             wordlist3 = vocab_utils.text_to_word_list(text3, split=text_split)
             word_indexlist3 = vocab_utils.list_to_index(wordlist3, word_index, unk_id=vocab_utils.UNK_ID)
             word_len3, word_indexlist3 = vocab_utils.list_pad(word_indexlist3, max_len=w_max_len2,
@@ -460,13 +469,10 @@ def load_triplet_data(data_file,
                 [words1, words2, words_len1, words_len2,
                  chars1, chars2, chars_len1, chars_len2,
                  labels]]
-    elif mode == "train" or mode == "eval":
+    else:
         data = [np.array(x, dtype=np.int32) for x in
                 [words1, words2, words3, words_len1, words_len2, words_len3,
                  chars1, chars2, chars3, chars_len1, chars_len2, chars_len3]]
-    else:
-        print("Unknown mode!!!")
-
     return data
 
 
@@ -488,8 +494,7 @@ def triplet_batch_iterator(data, batch_size, shuffle=True, mode="train"):
                 sklearn.utils.shuffle(
                     words1, words2, words_len1, words_len2, chars1, chars2, chars_len1, chars_len2, labels)
         else:
-            words1, words2, words3, words_len1, words_len2, words_len3, \
-            chars1, chars2, chars3, chars_len1, chars_len2, chars_len3 = data
+            words1, words2, words3, words_len1, words_len2, words_len3, chars1, chars2, chars3, chars_len1, chars_len2, chars_len3 = data
             data = \
                 sklearn.utils.shuffle(
                     words1, words2, words3, words_len1, words_len2, words_len3,
@@ -503,15 +508,23 @@ def triplet_batch_iterator(data, batch_size, shuffle=True, mode="train"):
 
 
 ### create vocabulary
-# train_data_file = "../data/qq_simscore/triplet/train.txt"
-# word_index_file = "../data/qq_simscore/triplet/word.txt"
-# char_index_file = "../data/qq_simscore/triplet/char.txt"
+train_data_file = "../data/qq_simscore/triplet/train.txt"
+infer_data_file = "../data/qq_simscore/triplet/infer.txt"
+word_index_file = "../data/qq_simscore/triplet/word.txt"
+char_index_file = "../data/qq_simscore/triplet/char.txt"
 # vocab_utils.create_vocab_from_triplet_data(train_data_file, word_index_file, split="|", char_level=False)
 # vocab_utils.create_vocab_from_triplet_data(train_data_file, char_index_file, split="|", char_level=True)
 
 
 # train_data = load_triplet_data(train_data_file, word_index_file, char_index_file, mode="train")
-# train_iter = triplet_batch_iterator(train_data, 2)
+# train_iter = triplet_batch_iterator(train_data, 2, mode="train")
 # while True:
 #     b = next(train_iter)
 #     print(b)
+
+# infer_data = load_triplet_data(infer_data_file, word_index_file, char_index_file, mode="infer")
+# print(len(infer_data))
+# infer_iter = triplet_batch_iterator(infer_data, 2, mode="infer")
+# while True:
+#     b = next(infer_iter)
+#     print(b[-1])

@@ -168,16 +168,16 @@ class APLSTM(object):
             char_embed1 = tf.nn.embedding_lookup(self.char_embedding, self.char_ids1, "char_embed1")
             char_embed2 = tf.nn.embedding_lookup(self.char_embedding, self.char_ids2, "char_embed2")
 
-            # TODO: query / question do not share weights
+            # TODO: query / question share bilstm weights
             word_out1, word_rep1 = self.bi_rnn(word_embed1, self.word_len1, self.num_units,
-                                               self.unit_type, self.dtype, False, "word1")
+                                               self.unit_type, self.dtype, tf.AUTO_REUSE, "word")
             word_out2, word_rep2 = self.bi_rnn(word_embed2, self.word_len2, self.num_units,
-                                               self.unit_type, self.dtype, False, "word2")
+                                               self.unit_type, self.dtype, tf.AUTO_REUSE, "word")
 
             char_out1, char_rep1 = self.bi_rnn(char_embed1, self.char_len1, self.num_units,
-                                               self.unit_type, self.dtype, False, "char1")
+                                               self.unit_type, self.dtype, tf.AUTO_REUSE, "char")
             char_out2, char_rep2 = self.bi_rnn(char_embed2, self.char_len2, self.num_units,
-                                               self.unit_type, self.dtype, False, "char2")
+                                               self.unit_type, self.dtype, tf.AUTO_REUSE, "char")
 
             word_att1, word_att2 = self.attentive_pooling(word_out1, word_out2, False, "word")
             char_att1, char_att2 = self.attentive_pooling(char_out1, char_out2, False, "char")

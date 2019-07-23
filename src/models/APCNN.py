@@ -102,7 +102,8 @@ class APCNN(object):
             pooled_outputs = []
             for i, filter_size in enumerate(self.filter_sizes):
                 conv = tf.layers.conv1d(inputs, self.num_filters, filter_size,
-                                        padding="same")  # (batch_size, seq_length，num_filters)
+                                        padding="same",
+                                        name='conv1d_%d' % filter_size)  # (batch_size, seq_length，num_filters)
                 # TODO: no activation func here in paper
                 # conv = tf.nn.relu(conv)
                 pooled_outputs.append(conv)
@@ -156,12 +157,12 @@ class APCNN(object):
             char_embed1 = tf.nn.embedding_lookup(self.char_embedding, self.char_ids1, "char_embed1")
             char_embed2 = tf.nn.embedding_lookup(self.char_embedding, self.char_ids2, "char_embed2")
 
-            # TODO: query-question encoder do not share weights.
-            word_rep1 = self.textcnn(word_embed1, False, "word1")
-            word_rep2 = self.textcnn(word_embed2, False, "word2")
+            # TODO: query/question share cnn weights.
+            word_rep1 = self.textcnn(word_embed1, tf.AUTO_REUSE, "word")
+            word_rep2 = self.textcnn(word_embed2, tf.AUTO_REUSE, "word")
 
-            char_rep1 = self.textcnn(char_embed1, False, "char1")
-            char_rep2 = self.textcnn(char_embed2, False, "char2")
+            char_rep1 = self.textcnn(char_embed1, tf.AUTO_REUSE, "char")
+            char_rep2 = self.textcnn(char_embed2, tf.AUTO_REUSE, "char")
 
             word_reps_seq1, word_reps_seq2 = self.attentive_pooling(word_rep1, word_rep2, tf.AUTO_REUSE, "word")
             char_reps_seq1, char_reps_seq2 = self.attentive_pooling(char_rep1, char_rep2, tf.AUTO_REUSE, "char")
