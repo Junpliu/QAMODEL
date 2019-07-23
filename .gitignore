@@ -6,3 +6,13 @@ src/figures
 src/logs/
 src/model
 *.pyc
+winsechang/XGBoost/data
+winsechang/XGBoost/model
+winsechang/XGBoost/model_test
+winsechang/XGBoost/tmp
+winsechang/XGBoost/*.txt
+winsechang/XGBoost/pic
+winsechang/XGBoost/*.swp
+winsechang/XGBoost/*.swo
+winsechang/XGBoost/aaa
+winsechang/XGBoost/bbb
