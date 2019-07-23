@@ -103,7 +103,8 @@ class APCNN(object):
             for i, filter_size in enumerate(self.filter_sizes):
                 conv = tf.layers.conv1d(inputs, self.num_filters, filter_size,
                                         padding="same")  # (batch_size, seq_length，num_filters)
-                conv = tf.nn.relu(conv)
+                # TODO: no activation func here in paper
+                # conv = tf.nn.relu(conv)
                 pooled_outputs.append(conv)
             # Combine all the features
             outputs = tf.concat(pooled_outputs, 2, name="output")  # (batch_size, seq_length, num_filters_total)
@@ -114,20 +115,28 @@ class APCNN(object):
 
     def attentive_pooling(self, rep1, rep2, reuse, name):
         vector_size = rep1.get_shape().as_list()[-1]
+        seq1_len = rep1.get_shape().as_list()[1]
 
         with tf.variable_scope("%s/attentive-pooling" % name, reuse=reuse):
+            # TODO: U should be [vector_size, vector_size]
             U = tf.get_variable("U", shape=[vector_size, vector_size],
                                 initializer=tf.truncated_normal_initializer(stddev=0.1))
-            U_batch = tf.tile(tf.expand_dims(U, 0), [self.batch_size, 1, 1])
-
+            # U_batch = tf.tile(tf.expand_dims(U, 0), [self.batch_size, 1, 1])
+            # self.U_batch = U_batch
+            # G = tf.tanh(
+            #     tf.matmul(
+            #         tf.matmul(rep1, U_batch), tf.transpose(rep2, [0, 2, 1])))  # (batch_size, seq1_len, seq2_len)
             G = tf.tanh(
-                tf.matmul(
-                    tf.matmul(rep1, U_batch), tf.transpose(rep2, [0, 2, 1])))  # (batch_size, seq1_len, seq2_len)
+                tf.einsum("bme,ben->bmn",
+                          tf.reshape(
+                              tf.matmul(tf.reshape(rep1, shape=[-1, vector_size]), U),
+                              shape=[-1, seq1_len, vector_size]),
+                          tf.transpose(rep2, [0, 2, 1])))
 
             # column-wise and row-wise max-pooling
             # to generate g_rep1 (batch_size*seq1_len*1), g_rep2 (batch_size*1*seq2_len)
-            g_rep1 = tf.reduce_max(G, axis=2, keep_dims=True)
-            g_rep2 = tf.reduce_max(G, axis=1, keep_dims=True)
+            g_rep1 = tf.reduce_max(G, axis=2, keepdims=True)
+            g_rep2 = tf.reduce_max(G, axis=1, keepdims=True)
 
             # create attention vectors sigma_rep1 (batch_size*seq1_len), sigma_rep2 (batch_size*seq2_len)
             sigma_rep1 = tf.nn.softmax(g_rep1)
@@ -221,6 +230,7 @@ class APCNN(object):
                 else:
                     raise NotImplementedError("Unknown method {}".format(self.opt))
                 gradients = tf.gradients(self.losses, params)
+
                 self.clipped_gradients, self.grad_norm = tf.clip_by_global_norm(gradients, self.max_gradient_norm)
                 self.train_op = opt.apply_gradients(zip(self.clipped_gradients, params), global_step=self.global_step)
 

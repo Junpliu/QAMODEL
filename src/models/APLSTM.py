@@ -100,18 +100,19 @@ class APLSTM(object):
         """
         with tf.variable_scope(name, reuse=reuse):
             if self.unit_type == "lstm":
-                fw_cell = tf.contrib.rnn.LSTMCell(num_units)
-                bw_cell = tf.contrib.rnn.LSTMCell(num_units)
+                fw_cell = tf.nn.rnn_cell.LSTMCell(num_units)
+                bw_cell = tf.nn.rnn_cell.LSTMCell(num_units)
             elif self.unit_type == "gru":
-                fw_cell = tf.contrib.rnn.GRUCell(num_units)
-                bw_cell = tf.contrib.rnn.GRUCell(num_units)
+                fw_cell = tf.nn.rnn_cell.GRUCell(num_units)
+                bw_cell = tf.nn.rnn_cell.GRUCell(num_units)
             else:
                 raise ValueError("Unknown unit type %s!" % unit_type)
 
-            fw_cell = tf.nn.rnn_cell.DropoutWrapper(cell=fw_cell,
-                                                    output_keep_prob=(1.0 - self.dropout))
-            bw_cell = tf.nn.rnn_cell.DropoutWrapper(cell=bw_cell,
-                                                    output_keep_prob=(1.0 - self.dropout))
+            if self.mode == "train":
+                fw_cell = tf.nn.rnn_cell.DropoutWrapper(cell=fw_cell,
+                                                        output_keep_prob=(1.0 - self.dropout))
+                bw_cell = tf.nn.rnn_cell.DropoutWrapper(cell=bw_cell,
+                                                        output_keep_prob=(1.0 - self.dropout))
 
             bi_outputs, bi_state = tf.nn.bidirectional_dynamic_rnn(
                 fw_cell,
@@ -126,15 +127,23 @@ class APLSTM(object):
 
     def attentive_pooling(self, rep1, rep2, reuse, name):
         vector_size = rep1.get_shape().as_list()[-1]
+        seq1_len = rep1.get_shape().as_list()[1]
 
         with tf.variable_scope("%s/attentive-pooling" % name, reuse=reuse):
+            # TODO: U should be [vector_size, vector_size]
             U = tf.get_variable("U", shape=[vector_size, vector_size],
                                 initializer=tf.truncated_normal_initializer(stddev=0.1))
-            U_batch = tf.tile(tf.expand_dims(U, 0), [self.batch_size, 1, 1])
-
+            # U_batch = tf.tile(tf.expand_dims(U, 0), [self.batch_size, 1, 1])
+            #
+            # G = tf.tanh(
+            #     tf.matmul(
+            #         tf.matmul(rep1, U_batch), tf.transpose(rep2, [0, 2, 1])))  # (batch_size, seq1_len, seq2_len)
             G = tf.tanh(
-                tf.matmul(
-                    tf.matmul(rep1, U_batch), tf.transpose(rep2, [0, 2, 1])))  # (batch_size, seq1_len, seq2_len)
+                tf.einsum("bme,ben->bmn",
+                          tf.reshape(
+                              tf.matmul(tf.reshape(rep1, shape=[-1, vector_size]), U),
+                              shape=[-1, seq1_len, vector_size]),
+                          tf.transpose(rep2, [0, 2, 1])))
 
             # column-wise and row-wise max-pooling
             # to generate g_rep1 (batch_size*seq1_len*1), g_rep2 (batch_size*1*seq2_len)
