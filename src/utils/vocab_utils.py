@@ -20,6 +20,7 @@ PAD_ID = 1
 
 Specials = ['<unk>', '<pad>']
 
+
 ####################  tokenizer from mulanhou  #####################
 # def cut_sentence(sentence):
 #     """
@@ -73,15 +74,58 @@ def create_vocab(in_path, out_path, max_size=None, min_freq=1, split="|", char_l
                 line = line.strip()
                 text1, text2 = line.split("\t")[0], line.split("\t")[1]
                 if char_level:
-                    chars = text_to_char_list(text1, split=split)
-                    vocab.update(chars)
-                    chars = text_to_char_list(text2, split=split)
-                    vocab.update(chars)
+                    vocab.update(text_to_char_list(text1, split=split))
+                    vocab.update(text_to_char_list(text2, split=split))
                 else:
-                    words = text_to_word_list(text1, split=split)
-                    vocab.update(words)
-                    words = text_to_word_list(text2, split=split)
-                    vocab.update(words)
+                    vocab.update(text_to_word_list(text1, split=split))
+                    vocab.update(text_to_word_list(text2, split=split))
+
+            sorted_vocab = sorted(vocab.items(), key=lambda x: x[0])
+            sorted_vocab.sort(key=lambda x: x[1], reverse=True)
+            # TODO: special token "<unk>" and "<pad>" is reserved.
+            id2word = list(Specials)
+            for word, freq in sorted_vocab:
+                if min_freq and freq < min_freq or len(id2word) == max_size:
+                    break
+                id2word.append(word)
+            with open(out_path, mode='w', encoding="utf-8") as fw:
+                for word in id2word:
+                    fw.write(str(word) + '\n')
+                    # fw.write(str(word) + '\t' + str(freq) + '\n')
+
+        logger.info("  min frequency %d, vocabulary size %d" % (min_freq, len(id2word)))
+        logger.info("  Done create vocab.")
+    else:
+        logger.info("Vocab file %s already exists." % out_path)
+
+
+def create_vocab_from_triplet_data(in_path, out_path, max_size=None, min_freq=1, split="|", char_level=False):
+    """
+    Create vocabulary if not exists.
+    :param in_path:
+    :param out_path:
+    :param max_size: the maximum number of words to keep, based on word frequency.
+                    Only the most common `num_words` words will be kept.
+    :param min_freq: ignore words which appear less than min_freq.
+    :param char_level: if True, every character will be treated as a token.
+    :param split: str. Separator for word splitting.
+    :return:
+    """
+    if not os.path.exists(out_path):
+        logger.info("Creating vocabulary {} from data {}".format(out_path, in_path))
+        vocab = collections.Counter()
+        with open(in_path, mode='r', encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                text1, text2, text3 = line.strip().split("\t")
+                if char_level:
+                    vocab.update(text_to_char_list(text1, split=split))
+                    vocab.update(text_to_char_list(text2, split=split))
+                    vocab.update(text_to_char_list(text3, split=split))
+                else:
+                    vocab.update(text_to_word_list(text1, split=split))
+                    vocab.update(text_to_word_list(text2, split=split))
+                    vocab.update(text_to_word_list(text3, split=split))
 
             sorted_vocab = sorted(vocab.items(), key=lambda x: x[0])
             sorted_vocab.sort(key=lambda x: x[1], reverse=True)
@@ -103,14 +147,14 @@ def create_vocab(in_path, out_path, max_size=None, min_freq=1, split="|", char_l
 
 
 def load_vocab(vocab_file):
-  """Loads a vocabulary file into a list."""
-  vocab = []
-  with open(vocab_file, "r", encoding="utf-8") as f:
-    vocab_size = 0
-    for word in f:
-      vocab_size += 1
-      vocab.append(word.strip())
-  return vocab, vocab_size
+    """Loads a vocabulary file into a list."""
+    vocab = []
+    with open(vocab_file, "r", encoding="utf-8") as f:
+        vocab_size = 0
+        for word in f:
+            vocab_size += 1
+            vocab.append(word.strip())
+    return vocab, vocab_size
 
 
 #######################  text to index  ##########################
@@ -145,7 +189,7 @@ def list_pad(sequence, max_len, pad_id=PAD_ID):
         sequence = sequence[:max_len]
     else:
         length = len(sequence)
-        sequence.extend([pad_id] * (max_len-length))
+        sequence.extend([pad_id] * (max_len - length))
     return length, sequence
 
 
@@ -191,10 +235,5 @@ def load_embed_txt(embed_file):
                 emb_size = len(vec)
     return emb_dict, emb_size
 
-
-
-
 #################  test  ###################
 # print(list_pad([1,2,3], 4))
-
-
