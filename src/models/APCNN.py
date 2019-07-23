@@ -154,15 +154,20 @@ class APCNN(object):
             char_rep1 = self.textcnn(char_embed1, False, "char1")
             char_rep2 = self.textcnn(char_embed2, False, "char2")
 
-            # sent_merge1 = tf.concat([word_rep1, char_rep1], axis=1, name="sent_merge1")
-            # sent_merge2 = tf.concat([word_rep2, char_rep2], axis=1, name="sent_merge2")
-
             word_reps_seq1, word_reps_seq2 = self.attentive_pooling(word_rep1, word_rep2, tf.AUTO_REUSE, "word")
             char_reps_seq1, char_reps_seq2 = self.attentive_pooling(char_rep1, char_rep2, tf.AUTO_REUSE, "char")
 
-            reps_concat = tf.concat([word_reps_seq1, word_reps_seq2, char_reps_seq1, char_reps_seq2], axis=1)
+            sent_merge1 = tf.concat([word_reps_seq1, char_reps_seq1], axis=1, name="sent_merge1")
+            sent_merge2 = tf.concat([word_reps_seq2, char_reps_seq2], axis=1, name="sent_merge2")
 
-            sent_dense1 = tf.layers.dense(inputs=reps_concat, units=self.fc_size, activation=tf.nn.relu)
+            reps_cat = tf.concat([sent_merge1, sent_merge2], axis=1)
+            reps_add = tf.add(sent_merge1, sent_merge2)
+            reps_sub = tf.subtract(sent_merge1, sent_merge2)
+            reps_abs_sub = tf.abs(tf.subtract(sent_merge1, sent_merge2))
+            reps_mul = tf.multiply(sent_merge1, sent_merge2)
+            reps_match = tf.concat([reps_cat, reps_add, reps_sub, reps_abs_sub, reps_mul], axis=1)
+
+            sent_dense1 = tf.layers.dense(inputs=reps_match, units=self.fc_size, activation=tf.nn.relu)
             sent_dense1 = tf.nn.dropout(sent_dense1, keep_prob=(1.0 - self.dropout))
             final_out = tf.layers.dense(inputs=sent_dense1, units=self.num_classes)
 

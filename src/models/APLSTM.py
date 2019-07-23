@@ -170,17 +170,20 @@ class APLSTM(object):
             char_out2, char_rep2 = self.bi_rnn(char_embed2, self.char_len2, self.num_units,
                                                self.unit_type, self.dtype, False, "char2")
 
-            # sent_merge1 = tf.concat([word_rep1, char_rep1], axis=1, name="sent_merge1")
-            # sent_merge2 = tf.concat([word_rep2, char_rep2], axis=1, name="sent_merge2")
-
-            # drop_sent1 = tf.nn.dropout(sent_merge1, keep_prob=(1. - self.dropout))
-            # drop_sent2 = tf.nn.dropout(sent_merge2, keep_prob=(1. - self.dropout))
-
             word_att1, word_att2 = self.attentive_pooling(word_out1, word_out2, False, "word")
             char_att1, char_att2 = self.attentive_pooling(char_out1, char_out2, False, "char")
-            sent_concat = tf.concat([word_att1, word_att2, char_att1, char_att2], axis=-1)
 
-            sent_dense1 = tf.layers.dense(inputs=sent_concat, units=self.fc_size, activation=tf.nn.relu)
+            sent_merge1 = tf.concat([word_att1, char_att1], axis=1, name="sent_merge1")
+            sent_merge2 = tf.concat([word_att2, char_att2], axis=1, name="sent_merge2")
+
+            reps_cat = tf.concat([sent_merge1, sent_merge2], axis=1)
+            reps_add = tf.add(sent_merge1, sent_merge2)
+            reps_sub = tf.subtract(sent_merge1, sent_merge2)
+            reps_abs_sub = tf.abs(tf.subtract(sent_merge1, sent_merge2))
+            reps_mul = tf.multiply(sent_merge1, sent_merge2)
+            reps_match = tf.concat([reps_cat, reps_add, reps_sub, reps_abs_sub, reps_mul], axis=1)
+
+            sent_dense1 = tf.layers.dense(inputs=reps_match, units=self.fc_size, activation=tf.nn.relu)
             sent_dense_drop1 = tf.nn.dropout(sent_dense1, keep_prob=(1.0 - self.dropout))
             final_out = tf.layers.dense(inputs=sent_dense_drop1, units=self.num_classes)
 
