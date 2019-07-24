@@ -33,7 +33,7 @@ flags.DEFINE_string("model_dir", "/ceph/qbkg/aitingliu/qq/src/model/APCNNT", "mo
 flags.DEFINE_string("log_dir", "/ceph/qbkg/aitingliu/qq/src/logdir/APCNNT", "model path")
 
 # data file path
-flags.DEFINE_string("train_file", "/ceph/qbkg/aitingliu/qq/src/data/qq_simscore/triplet/dev.txt", "Training data file.")
+flags.DEFINE_string("train_file", "/ceph/qbkg/aitingliu/qq/src/data/qq_simscore/triplet/train.txt", "Training data file.")
 flags.DEFINE_string("dev_file", "/ceph/qbkg/aitingliu/qq/src/data/qq_simscore/triplet/dev.txt", "Development data file.")
 flags.DEFINE_string("test_file", "/ceph/qbkg/aitingliu/qq/src/data/qq_simscore/triplet/test.txt", "Test data file.")
 flags.DEFINE_string("infer_file", "/ceph/qbkg/aitingliu/qq/src/data/qq_simscore/triplet/infer.txt", "Test data file.")
