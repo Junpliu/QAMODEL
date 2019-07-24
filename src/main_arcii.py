@@ -29,7 +29,8 @@ flags = tf.flags
 FLAGS = flags.FLAGS
 
 # save model path
-flags.DEFINE_string("model_dir", "/ceph/qbkg/aitingliu/qq/src/model/qq_simscore/ARCII", "model path")
+flags.DEFINE_string("model_dir", "/ceph/qbkg/aitingliu/qq/src/model/ARCII", "model path")
+flags.DEFINE_string("log_dir", "/ceph/qbkg/aitingliu/qq/src/logdir/ARCII", "model path")
 
 # data file path
 flags.DEFINE_string("train_file", "/ceph/qbkg/aitingliu/qq/src/data/qq_simscore/train.txt", "Training data file.")
@@ -39,7 +40,7 @@ flags.DEFINE_string("infer_file", "/ceph/qbkg/aitingliu/qq/src/data/qq_simscore/
 flags.DEFINE_string("word_vocab_file", "/ceph/qbkg/aitingliu/qq/src/data/qq_simscore/word.txt", "Word vocabulary file.")
 flags.DEFINE_string("char_vocab_file", "/ceph/qbkg/aitingliu/qq/src/data/qq_simscore/char.txt", "Char vocabulary file.")
 flags.DEFINE_string("word_embed_file", None, "Pretrained embedding file.")
-flags.DEFINE_string("ckpt_name", "arcii.ckpt", "Checkpoint file name.")
+flags.DEFINE_string("ckpt_name", "ARCII.ckpt", "Checkpoint file name.")
 
 # train
 flags.DEFINE_integer("random_seed", 1213, "Random seed (>0, set a specific seed).")
@@ -48,7 +49,7 @@ flags.DEFINE_string("opt", "adam", "Optimizer: adam | adadelta | adagrad | sgd |
 flags.DEFINE_float("max_gradient_norm", 5.0, "Clip gradients to this norm.")
 flags.DEFINE_integer("batch_size", 64, "Batch size. (default: 128)")
 flags.DEFINE_integer("epoch_step", 0, "Record where we were within an epoch.")
-flags.DEFINE_integer("num_train_epochs", 20, "Num epochs to train.")
+flags.DEFINE_integer("num_train_epochs", 50, "Num epochs to train.")
 flags.DEFINE_integer("num_keep_ckpts", 5, "Max number fo checkpoints to keep.")
 flags.DEFINE_integer("num_train_steps", 20000, "Num epochs to train.")
 flags.DEFINE_integer("steps_per_stats", 100, "How many training steps to do per stats logging.")
@@ -58,6 +59,8 @@ flags.DEFINE_float("best_accuracy", 0.0, "Best accuracy score on dev set")
 flags.DEFINE_string("best_accuracy_dir", None, "Best accuracy model dir")
 flags.DEFINE_float("best_f1", 0.0, "Best f1 score on dev set")
 flags.DEFINE_string("best_f1_dir", None, "Best f1 model dir")
+flags.DEFINE_float("best_eval_loss", 1000.0, "Best eval loss on dev set.")
+flags.DEFINE_string("best_eval_loss_dir", None, "Best eval loss on dev set.")
 
 # inference
 flags.DEFINE_integer("infer_batch_size", 64, "Batch size for inference mode.")
@@ -72,16 +75,17 @@ flags.DEFINE_integer("char_embed_size", 300, "Char embedding size.")
 flags.DEFINE_integer("word_vocab_size", 30000, "Word vocabulary size.")
 flags.DEFINE_integer("char_vocab_size", 4000, "Char vocabulary size.")
 
-# bilstm model configuration
-
+# model configuration
 # flags.DEFINE_integer("num_units", 128, "LSTM hidden size.(default: 128)")
 # flags.DEFINE_string("unit_type", "lstm", "RNN type: lstm | gru | layer_norm_lstm")
 # flags.DEFINE_string("filter_sizes", "3,4,5", "CNN filter sizes.")
 flags.DEFINE_integer("num_filters", 100, "Number of filters.")
 flags.DEFINE_integer("fc_size", 512, "Fully connected layer hidden size. (default: 1024)")
 flags.DEFINE_integer("num_classes", 2, "Number of classes.")
-flags.DEFINE_float("dropout", 0.3, "Dropout rate (not keep_prob) default: 0.3)")
-flags.DEFINE_float("l2_reg_lambda", 0.0, "L2 regularization lambda (default: 0.0)")
+flags.DEFINE_float("dropout", 0.5, "Dropout rate (not keep_prob) default: 0.5)")
+flags.DEFINE_float("l2_reg_lambda", 0.00001, "L2 regularization lambda (default: 0.0)")
+flags.DEFINE_integer("decay_steps", 1000, "How many steps before decay learning rate. (default: 500)")
+flags.DEFINE_float("decay_rate", 0.95, "Rate of decay for learning rate. (default: 0.95)")
 
 # train/inference/evaluate flag
 flags.DEFINE_boolean("train", True, "train mode")
@@ -113,17 +117,23 @@ def update_config(config):
         os.makedirs(model_dir)
 
     # Evaluation
-    config.best_accuracy = .0
+    config.best_accuracy = 0.0
     best_accuracy_dir = os.path.join(config.model_dir, "best_accuracy")
     setattr(config, "best_accuracy_dir", best_accuracy_dir)
     if best_accuracy_dir and not os.path.exists(best_accuracy_dir):
         os.makedirs(best_accuracy_dir)
 
-    config.best_f1 = .0
+    config.best_f1 = 0.0
     best_f1_dir = os.path.join(config.model_dir, "best_f1")
     setattr(config, "best_f1_dir", best_f1_dir)
     if best_f1_dir and not os.path.exists(best_f1_dir):
         os.makedirs(best_f1_dir)
+
+    config.best_eval_loss = 1000.0
+    best_eval_loss_dir = os.path.join(config.model_dir, "best_eval_loss")
+    setattr(config, "best_eval_loss_dir", best_eval_loss_dir)
+    if best_eval_loss_dir and not os.path.exists(best_eval_loss_dir):
+        os.makedirs(best_eval_loss_dir)
 
     # print configuration
     logger.info("# Hparams")

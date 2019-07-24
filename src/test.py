@@ -351,38 +351,129 @@
 #         print(summary)
 
 
+# import tensorflow as tf
+# import numpy as np
+# import time
+#
+# x = tf.constant(np.array([[1, 2, 3], [1, 2, 3]]), dtype=tf.float32)
+# y = tf.constant(np.array([[4, 5, 6], [4, 5, 6]]), dtype=tf.float32)
+# # x1 = tf.constant(np.array([[7, 8, 9]]), dtype=tf.float32)
+# # y1 = tf.constant(np.array([[3, 2, 1]]), dtype=tf.float32)
+# # x2 = tf.concat([x, x1], axis=-1)
+# # y2 = tf.concat([y, y1], axis=-1)
+#
+# x_norm = tf.nn.l2_normalize(x, axis=1)
+# y_norm = tf.nn.l2_normalize(y, axis=1)
+# # x_norm1 = tf.nn.l2_normalize(x1, 0)
+# # y_norm1 = tf.nn.l2_normalize(y1, 0)
+# # x_norm2 = tf.nn.l2_normalize(x2, 0)
+# # y_norm2 = tf.nn.l2_normalize(y2, 0)
+# c = tf.reduce_sum(tf.multiply(x_norm, y_norm), axis=1)
+# # s = tf.losses.cosine_distance(x_norm, y_norm, axis=1)
+# # c1 = tf.reduce_sum(tf.multiply(x_norm1, y_norm1))
+# # c2 = tf.reduce_sum(tf.multiply(x_norm2, y_norm2))
+# cosine = tf.div(
+#             tf.reduce_sum(x*y, 1),
+#             tf.sqrt(tf.reduce_sum(x*x, 1)) * tf.sqrt(tf.reduce_sum(y*y, 1)) + 1e-8,
+#             name="cosine")
+#
+# sess = tf.Session()
+# a = time.time()
+# res = sess.run(c)
+# b = time.time()
+# print(res, b-a)
+# res1 = sess.run(cosine)
+# c = time.time()
+# print(res1, c-b)
+# # print(sess.run([x_norm, y_norm, c, s, c1, c2]))
+
+
 import tensorflow as tf
 import numpy as np
-import time
 
-x = tf.constant(np.array([[1, 2, 3], [1, 2, 3]]), dtype=tf.float32)
-y = tf.constant(np.array([[4, 5, 6], [4, 5, 6]]), dtype=tf.float32)
-# x1 = tf.constant(np.array([[7, 8, 9]]), dtype=tf.float32)
-# y1 = tf.constant(np.array([[3, 2, 1]]), dtype=tf.float32)
-# x2 = tf.concat([x, x1], axis=-1)
-# y2 = tf.concat([y, y1], axis=-1)
+# x = np.array([[[2, 3, 4], [4, 5, 6], [4, 5, 6], [4, 5, 6]]])
+# x = tf.convert_to_tensor(x, dtype=tf.float32)
+# filter_size = 3
+# num_filters = 10
 
-x_norm = tf.nn.l2_normalize(x, axis=1)
-y_norm = tf.nn.l2_normalize(y, axis=1)
-# x_norm1 = tf.nn.l2_normalize(x1, 0)
-# y_norm1 = tf.nn.l2_normalize(y1, 0)
-# x_norm2 = tf.nn.l2_normalize(x2, 0)
-# y_norm2 = tf.nn.l2_normalize(y2, 0)
-c = tf.reduce_sum(tf.multiply(x_norm, y_norm), axis=1)
-# s = tf.losses.cosine_distance(x_norm, y_norm, axis=1)
-# c1 = tf.reduce_sum(tf.multiply(x_norm1, y_norm1))
-# c2 = tf.reduce_sum(tf.multiply(x_norm2, y_norm2))
-cosine = tf.div(
-            tf.reduce_sum(x*y, 1),
-            tf.sqrt(tf.reduce_sum(x*x, 1)) * tf.sqrt(tf.reduce_sum(y*y, 1)) + 1e-8,
-            name="cosine")
+# with tf.variable_scope("conv1d_%d" % filter_size):
+#     # convolution layer
+#     conv = tf.layers.conv1d(
+#         inputs=x,
+#         filters=10,
+#         kernel_size=filter_size,
+#         strides=1,
+#         padding="valid",
+#         activation=tf.nn.relu)
+#     # max-pooling over the outputs
+#     pooled = tf.layers.max_pooling1d(
+#         conv,
+#         pool_size=4 - filter_size + 1,
+#         strides=1,
+#         padding="valid")
+#     # pooled_outputs.append(pooled)
+#
+# x_ = tf.expand_dims(x, -1)
+# with tf.variable_scope("conv1d_%d" % filter_size):
+#     # convolution layer
+#     filter_shape = [filter_size, 3, 1, num_filters]
+#     b = tf.get_variable("b", shape=[num_filters], initializer=tf.constant_initializer(0.1))
+#     conv1 = tf.layers.conv2d(
+#         x_,
+#         num_filters,
+#         (filter_size, 3),
+#         strides=(1, 1),
+#         padding="VALID",
+#         activation=tf.nn.relu,
+#         name="conv")
+#     # Maxpooling over the outputs
+#     pooled1 = tf.layers.max_pooling2d(
+#         conv1,
+#         pool_size=(2, 1),
+#         strides=1,
+#         padding="VALID",
+#         name="pool")
+
+# sess = tf.Session()
+# sess.run(tf.global_variables_initializer())
+# sess.run(tf.local_variables_initializer())
+# print("con1d", sess.run(conv))
+# print("pool1d", sess.run(pooled))
+# print("con2d", sess.run(conv1))
+# print("pool2d", sess.run(pooled1))
+
+
+x = np.array([[[2, 3, 4], [4, 5, 6], [4, 5, 6], [4, 5, 6], [4, 5, 6], [4, 5, 6]], [[2, 3, 4], [4, 5, 6], [4, 5, 6], [4, 5, 6], [4, 5, 6], [4, 5, 6]]])
+x = tf.convert_to_tensor(x, dtype=tf.float32)
+filter_sizes = [3, 4, 5]
+num_filters = 10
+pooled_outputs = []
+max_seq_len = 6
+for i, filter_size in enumerate(filter_sizes):
+    with tf.variable_scope("conv-maxpool-1d_%d" % filter_size):
+        # convolution layer
+        conv = tf.layers.conv1d(
+            inputs=x,
+            filters=num_filters,
+            kernel_size=filter_size,
+            strides=1,
+            padding="valid",
+            activation=tf.nn.relu)
+        # max-pooling over the outputs
+        pooled = tf.layers.max_pooling1d(
+            conv,
+            pool_size=max_seq_len - filter_size + 1,
+            strides=1,
+            padding="valid")
+        pooled_outputs.append(pooled)
 
 sess = tf.Session()
-a = time.time()
-res = sess.run(c)
-b = time.time()
-print(res, b-a)
-res1 = sess.run(cosine)
-c = time.time()
-print(res1, c-b)
-# print(sess.run([x_norm, y_norm, c, s, c1, c2]))
+sess.run(tf.global_variables_initializer())
+sess.run(tf.local_variables_initializer())
+# Combine all the pooled features
+num_filters_total = num_filters * len(filter_sizes)
+h_pool = tf.concat(pooled_outputs, 2)
+print(sess.run([pooled_outputs, h_pool]))
+print(h_pool.get_shape())
+h_pool_flat = tf.layers.flatten(h_pool)
+print(h_pool_flat.get_shape())

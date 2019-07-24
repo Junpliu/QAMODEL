@@ -88,7 +88,6 @@ def run_eval(config, eval_model, eval_sess, eval_data, model_dir, ckpt_name, sum
 
     for metric in config.metrics.split(","):
         best_metric_label = "best_%s" % metric
-
         if save_on_best and scores[metric] > getattr(config, best_metric_label):
             setattr(config, best_metric_label, scores[metric])
             loaded_eval_model.saver.save(
@@ -96,6 +95,15 @@ def run_eval(config, eval_model, eval_sess, eval_data, model_dir, ckpt_name, sum
                 os.path.join(
                     getattr(config, best_metric_label + "_dir"), ckpt_name),
                 loaded_eval_model.global_step)
+
+    best_eval_loss = getattr(config, "best_eval_loss")
+    if eval_loss < best_eval_loss:
+        setattr(config, "best_eval_loss", eval_loss)
+        loaded_eval_model.saver.save(
+            eval_sess,
+            os.path.join(
+                getattr(config, "best_eval_loss_dir"), ckpt_name),
+            loaded_eval_model.global_step)
 
     return scores, global_step
 
@@ -175,6 +183,7 @@ def train(config, model_creator):
     steps_per_stats = config.steps_per_stats
     steps_per_eval = config.steps_per_eval
     model_dir = config.model_dir
+    log_dir = config.log_dir
     ckpt_name = config.ckpt_name
     ckpt_path = os.path.join(model_dir, ckpt_name)
 
@@ -206,8 +215,8 @@ def train(config, model_creator):
     # infer_sess = tf.Session(config=config, graph=infer_model.graph)
 
     # Summary Writer
-    summary_writer = tf.summary.FileWriter(os.path.join(model_dir, "train_log"), train_model.graph)
-    eval_summary_writer = tf.summary.FileWriter(os.path.join(model_dir, "eval_log"), eval_model.graph)
+    train_summary_writer = tf.summary.FileWriter(os.path.join(log_dir, "train_log"), train_model.graph)
+    eval_summary_writer = tf.summary.FileWriter(os.path.join(log_dir, "eval_log"), eval_model.graph)
 
     with train_model.graph.as_default():
         loaded_train_model, global_step = model_helper.create_or_load_model(
@@ -276,8 +285,8 @@ def train(config, model_creator):
                 "  step %d lr %g step_time %.2fs loss %.4f acc %.4f rec %.4f pre %.4f f1 %.4f auc %.4f gN %.2f" %
                 (global_step, lr, step_time, train_loss, train_acc, train_rec, train_pre, train_f1, train_auc,
                  grad_norm))
-            summary_writer.add_summary(train_summary1, global_step=global_step)
-            summary_writer.add_summary(train_summary2, global_step=global_step)
+            train_summary_writer.add_summary(train_summary1, global_step=global_step)
+            train_summary_writer.add_summary(train_summary2, global_step=global_step)
             step_time, train_loss, train_acc, train_rec, train_pre, train_f1, train_auc, gN = 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
 
         if global_step - last_eval_step >= steps_per_eval:
@@ -295,5 +304,5 @@ def train(config, model_creator):
                 (global_step, lr, step_time, train_loss, train_acc, train_rec, train_pre, train_f1, train_auc, gN))
     logger.info("# Done training!")
 
-    summary_writer.close()
+    train_summary_writer.close()
     eval_summary_writer.close()

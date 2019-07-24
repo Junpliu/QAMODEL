@@ -51,6 +51,8 @@ class APLSTM(object):
         self.max_gradient_norm = config.max_gradient_norm
         self.num_keep_ckpts = config.num_keep_ckpts
         self.batch_size = config.batch_size
+        self.decay_steps = config.decay_steps
+        self.decay_rate = config.decay_rate
 
         self.global_step = tf.Variable(0, trainable=False)
         self.build()
@@ -147,8 +149,8 @@ class APLSTM(object):
 
             # column-wise and row-wise max-pooling
             # to generate g_rep1 (batch_size*seq1_len*1), g_rep2 (batch_size*1*seq2_len)
-            g_rep1 = tf.reduce_max(G, axis=2, keep_dims=True)
-            g_rep2 = tf.reduce_max(G, axis=1, keep_dims=True)
+            g_rep1 = tf.reduce_max(G, axis=2, keepdims=True)
+            g_rep2 = tf.reduce_max(G, axis=1, keepdims=True)
 
             # create attention vectors sigma_rep1 (batch_size*seq1_len), sigma_rep2 (batch_size*seq2_len)
             sigma_rep1 = tf.nn.softmax(g_rep1)
@@ -206,13 +208,13 @@ class APLSTM(object):
 
         if self.mode != "infer":
             with tf.variable_scope("loss"):
-                losses = tf.nn.softmax_cross_entropy_with_logits(labels=self.target, logits=self.logits)
-                self.losses = tf.reduce_mean(losses, name="losses")
-                if self.l2_reg_lambda:
+                self.losses = tf.reduce_mean(
+                    tf.nn.softmax_cross_entropy_with_logits(labels=self.target, logits=self.logits))
+                if self.l2_reg_lambda > 0.0:
                     self.l2_losses = tf.add_n(
                         [tf.nn.l2_loss(tf.cast(v, self.dtype)) for v in tf.trainable_variables()],
-                        name="l2_losses") * self.l2_reg_lambda
-                    self.losses = tf.add(self.losses, self.l2_losses, name="losses")
+                        name="l2_losses")
+                    self.losses = self.losses + self.l2_losses * self.l2_reg_lambda
 
             with tf.variable_scope("metrics"):
                 self.accuracy, self.accuracy_op = tf.metrics.accuracy(self.labels, self.pred_labels, name="acc")
@@ -224,13 +226,13 @@ class APLSTM(object):
         if self.mode == "train":
             params = tf.trainable_variables()
             with tf.variable_scope("opt"):
-                # self.learning_rate = tf.train.exponential_decay(
-                #     learning_rate=self.learning_rate,
-                #     global_step=self.global_step,
-                #     decay_steps=1000,
-                #     decay_rate=0.96,
-                #     staircase=True,
-                #     name="learning_rate_decay")
+                self.learning_rate = tf.train.exponential_decay(
+                    learning_rate=self.learning_rate,
+                    global_step=self.global_step,
+                    decay_steps=self.decay_steps,
+                    decay_rate=self.decay_rate,
+                    staircase=False,
+                    name="learning_rate_decay")
                 if self.opt == 'adam':
                     opt = tf.train.AdamOptimizer(self.learning_rate)
                 elif self.opt == 'adagrad':

@@ -53,6 +53,8 @@ class TextCNN(object):
         self.max_gradient_norm = config.max_gradient_norm
         self.num_keep_ckpts = config.num_keep_ckpts
         self.batch_size = config.batch_size
+        self.decay_steps = config.decay_steps
+        self.decay_rate = config.decay_rate
 
         self.global_step = tf.Variable(0, trainable=False)
         self.build()
@@ -97,38 +99,29 @@ class TextCNN(object):
 
     def textcnn(self, inputs, max_seq_len, embedding_size, filter_sizes, num_filters, reuse, name):
         with tf.variable_scope(name, reuse=reuse):
-            embeded_seq_expanded = tf.expand_dims(inputs, -1)
-
             # Create a convolution + maxpool layer for each filter size
             pooled_outputs = []
             for i, filter_size in enumerate(filter_sizes):
-                with tf.variable_scope("conv-maxpool-%s" % filter_size):
+                with tf.variable_scope("conv-maxpool-1d_%d" % filter_size):
                     # convolution layer
-                    filter_shape = [filter_size, embedding_size, 1, num_filters]
-                    W = tf.get_variable("W", shape=filter_shape,
-                                        initializer=tf.truncated_normal_initializer(stddev=0.1))
-                    b = tf.get_variable("b", shape=[num_filters], initializer=tf.constant_initializer(0.1))
-                    conv = tf.nn.conv2d(
-                        embeded_seq_expanded,
-                        W,
-                        strides=[1, 1, 1, 1],
-                        padding="VALID",
-                        name="conv")
-                    # Apply nonlinearity
-                    h = tf.nn.relu(tf.nn.bias_add(conv, b), name="relu")
-                    # Maxpooling over the outputs
-                    pooled = tf.nn.max_pool(
-                        h,
-                        ksize=[1, max_seq_len - filter_size + 1, 1, 1],
-                        strides=[1, 1, 1, 1],
-                        padding="VALID",
-                        name="pool")
+                    conv = tf.layers.conv1d(
+                        inputs=inputs,
+                        filters=num_filters,
+                        kernel_size=filter_size,
+                        strides=1,
+                        padding="valid",
+                        activation=tf.nn.relu)
+                    # max-pooling over the outputs
+                    pooled = tf.layers.max_pooling1d(
+                        conv,
+                        pool_size=max_seq_len - filter_size + 1,
+                        strides=1,
+                        padding="valid")
                     pooled_outputs.append(pooled)
 
             # Combine all the pooled features
-            num_filters_total = num_filters * len(filter_sizes)
-            h_pool = tf.concat(pooled_outputs, 3)
-            h_pool_flat = tf.reshape(h_pool, [-1, num_filters_total])
+            h_pool = tf.concat(pooled_outputs, 2)
+            h_pool_flat = tf.layers.flatten(h_pool)
 
             # Add dropout
             h_pool_flat = tf.nn.dropout(h_pool_flat, 1.0 - self.dropout)
@@ -177,13 +170,13 @@ class TextCNN(object):
 
         if self.mode != "infer":
             with tf.variable_scope("loss"):
-                losses = tf.nn.softmax_cross_entropy_with_logits(labels=self.target, logits=self.logits)
-                self.losses = tf.reduce_mean(losses, name="losses")
-                if self.l2_reg_lambda:
+                self.losses = tf.reduce_mean(
+                    tf.nn.softmax_cross_entropy_with_logits(labels=self.target, logits=self.logits))
+                if self.l2_reg_lambda > 0.0:
                     self.l2_losses = tf.add_n(
                         [tf.nn.l2_loss(tf.cast(v, self.dtype)) for v in tf.trainable_variables()],
-                        name="l2_losses") * self.l2_reg_lambda
-                    self.losses = tf.add(self.losses, self.l2_losses, name="losses")
+                        name="l2_losses")
+                    self.losses = self.losses + self.l2_losses * self.l2_reg_lambda
 
             with tf.variable_scope("metrics"):
                 self.accuracy, self.accuracy_op = tf.metrics.accuracy(self.labels, self.pred_labels, name="acc")
@@ -195,13 +188,13 @@ class TextCNN(object):
         if self.mode == "train":
             params = tf.trainable_variables()
             with tf.variable_scope("opt"):
-                # self.learning_rate = tf.train.exponential_decay(
-                #     learning_rate=self.learning_rate,
-                #     global_step=self.global_step,
-                #     decay_steps=1000,
-                #     decay_rate=0.96,
-                #     staircase=True,
-                #     name="learning_rate_decay")
+                self.learning_rate = tf.train.exponential_decay(
+                    learning_rate=self.learning_rate,
+                    global_step=self.global_step,
+                    decay_steps=self.decay_steps,
+                    decay_rate=self.decay_rate,
+                    staircase=False,
+                    name="learning_rate_decay")
                 if self.opt == 'adam':
                     opt = tf.train.AdamOptimizer(self.learning_rate)
                 elif self.opt == 'adagrad':
