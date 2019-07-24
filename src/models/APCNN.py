@@ -48,7 +48,7 @@ class APCNN(object):
         self.num_classes = config.num_classes
         self.dropout = config.dropout if mode == "train" else 0.0
         self.l2_reg_lambda = config.l2_reg_lambda
-        self.learning_rate = tf.constant(config.learning_rate)
+        self.learning_rate = config.learning_rate
         self.opt = config.opt
         self.max_gradient_norm = config.max_gradient_norm
         self.num_keep_ckpts = config.num_keep_ckpts
@@ -216,7 +216,7 @@ class APCNN(object):
                     global_step=self.global_step,
                     decay_steps=self.decay_steps,
                     decay_rate=self.decay_rate,
-                    staircase=False,
+                    staircase=True,
                     name="learning_rate_decay")
                 if self.opt == 'adam':
                     opt = tf.train.AdamOptimizer(self.learning_rate)

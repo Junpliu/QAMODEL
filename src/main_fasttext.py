@@ -40,7 +40,7 @@ flags.DEFINE_string("infer_file", "/ceph/qbkg/aitingliu/qq/src/data/qq_simscore/
 flags.DEFINE_string("word_vocab_file", "/ceph/qbkg/aitingliu/qq/src/data/qq_simscore/word.txt", "Word vocabulary file.")
 flags.DEFINE_string("char_vocab_file", "/ceph/qbkg/aitingliu/qq/src/data/qq_simscore/char.txt", "Char vocabulary file.")
 flags.DEFINE_string("word_embed_file", None, "Pretrained embedding file.")
-flags.DEFINE_string("ckpt_name", "FastText.ckpt", "Checkpoint file name.")
+flags.DEFINE_string("ckpt_name", "model.ckpt", "Checkpoint file name.")
 
 # train
 flags.DEFINE_integer("random_seed", 1213, "Random seed (>0, set a specific seed).")
