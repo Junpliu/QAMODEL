@@ -78,7 +78,8 @@ def run_eval(config, eval_model, eval_sess, eval_data, model_dir, ckpt_name, sum
               "recall": rec,
               "precision": pre,
               "f1": f1,
-              "auc": auc}
+              "auc": auc,
+              "eval_loss": eval_loss}
 
     logging.info("# eval loss %.4f acc %.4f rec %.4f pre %.4f f1 %.4f auc %.4f" % (eval_loss, acc, rec, pre, f1, auc))
 
@@ -88,24 +89,20 @@ def run_eval(config, eval_model, eval_sess, eval_data, model_dir, ckpt_name, sum
 
     for metric in config.metrics.split(","):
         best_metric_label = "best_%s" % metric
-        if save_on_best and scores[metric] > getattr(config, best_metric_label):
+        if save_on_best and metric != "eval_loss" and scores[metric] > getattr(config, best_metric_label):
             setattr(config, best_metric_label, scores[metric])
             loaded_eval_model.saver.save(
                 eval_sess,
                 os.path.join(
                     getattr(config, best_metric_label + "_dir"), ckpt_name),
                 loaded_eval_model.global_step)
-
-    best_eval_loss = getattr(config, "best_eval_loss")
-    if eval_loss < best_eval_loss:
-        setattr(config, "best_eval_loss", eval_loss)
-        loaded_eval_model.saver.save(
-            eval_sess,
-            os.path.join(
-                getattr(config, "best_eval_loss_dir"), ckpt_name),
-            loaded_eval_model.global_step)
-
-    return scores, global_step
+        if save_on_best and metric == "eval_loss" and scores[metric] < getattr(config, best_metric_label):
+            setattr(config, best_metric_label, scores[metric])
+            loaded_eval_model.saver.save(
+                eval_sess,
+                os.path.join(
+                    getattr(config, best_metric_label + "_dir"), ckpt_name),
+                loaded_eval_model.global_step)
 
 
 def run_test(config, eval_model, eval_sess, data_file, model_dir):
