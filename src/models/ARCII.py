@@ -108,8 +108,8 @@ class ARCII(object):
             xy_mask_tile = tf.tile(tf.expand_dims(xy_mask, -1), [1, 1, 1, self.num_filters])
 
             # Layer-1
-            con1d1 = tf.layers.Conv1D(self.num_filters, k1, 1, 'same', name="1/con1d1")
-            con1d2 = tf.layers.Conv1D(self.num_filters, k1, 1, 'same', name='1/con1d2')
+            con1d1 = tf.layers.Conv1D(self.num_filters, k1, 1, 'same', name="1/con1d1", activation=tf.nn.relu)
+            con1d2 = tf.layers.Conv1D(self.num_filters, k1, 1, 'same', name='1/con1d2', activation=tf.nn.relu)
             x_con1d = con1d1(embed_seq1)
             y_con1d = con1d2(embed_seq2)
             x_con1d_tile = tf.tile(tf.expand_dims(x_con1d, 2), [1, 1, max_seq_len2, 1])
@@ -117,10 +117,9 @@ class ARCII(object):
             y_reshape = tf.reshape(y_con1d_tile, shape=[self.batch_size, max_seq_len1, max_seq_len2, self.num_filters])
             xy = tf.add(x_con1d_tile, y_reshape)
             xy_con1d = tf.multiply(xy_mask_tile, xy)
-            con1ds = tf.nn.relu(xy_con1d)
 
             # Layer-2
-            pool2d = tf.layers.max_pooling2d(inputs=con1ds,
+            pool2d = tf.layers.max_pooling2d(inputs=xy_con1d,
                                              pool_size=(2, 2),
                                              strides=2,
                                              padding="same",
@@ -131,15 +130,14 @@ class ARCII(object):
                                      filters=self.num_filters,
                                      kernel_size=(2, 2),
                                      padding="same",
-                                     name="3/con2d_1")
-            con2d = tf.nn.relu(con2d)
-            flatten = tf.layers.flatten(con2d, name="flatten")
+                                     name="3/con2d_1",
+                                     activation=tf.nn.relu)
+
             # Layer-4-8
-            # pool2d_2 = tf.layers.max_pooling2d(con2d, (2, 2), 2, "same", name="4/pool2d_2")
-            # con2d_2 = tf.layers.conv2d(pool2d_2, self.num_filters, (2, 2), 1, "same", name="5/con2d_2")
-            # con2d_2 = tf.nn.relu(con2d_2)
-            # pool2d_3 = tf.layers.max_pooling2d(con2d_2, (2, 2), 2, "same", name="6/pool2d_3")
-            # flatten = tf.layers.flatten(pool2d_3, name="flatten")
+            pool2d_2 = tf.layers.max_pooling2d(con2d, (2, 2), 2, "same", name="4/pool2d_2")
+            con2d_2 = tf.layers.conv2d(pool2d_2, self.num_filters, (2, 2), 1, "same", name="5/con2d_2", activation=tf.nn.relu)
+            pool2d_3 = tf.layers.max_pooling2d(con2d_2, (2, 2), 2, "same", name="6/pool2d_3")
+            flatten = tf.layers.flatten(pool2d_3, name="flatten")
             # fc_1 = tf.layers.dense(flatten, self.fc_size, tf.nn.relu, name="7/mlp_1")
             # fc_2 = tf.layers.dense(fc_1, self.num_classes, name="8/mlp_2")
         return flatten

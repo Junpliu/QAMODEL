@@ -110,13 +110,12 @@ class SCWLSTM(object):
             else:
                 raise ValueError("Unknown unit type %s!" % unit_type)
 
-            if self.mode == "train":
-                fw_cell = tf.nn.rnn_cell.DropoutWrapper(cell=fw_cell,
-                                                        input_keep_prob=(1.0 - self.dropout),
-                                                        output_keep_prob=(1.0 - self.dropout))
-                bw_cell = tf.nn.rnn_cell.DropoutWrapper(cell=bw_cell,
-                                                        input_keep_prob=(1.0 - self.dropout),
-                                                        output_keep_prob=(1.0 - self.dropout))
+            # TODO: whether use dropout
+            # if self.mode == "train":
+            #     fw_cell = tf.nn.rnn_cell.DropoutWrapper(cell=fw_cell,
+            #                                             output_keep_prob=(1.0 - self.dropout))
+            #     bw_cell = tf.nn.rnn_cell.DropoutWrapper(cell=bw_cell,
+            #                                             output_keep_prob=(1.0 - self.dropout))
 
             bi_outputs, bi_state = tf.nn.bidirectional_dynamic_rnn(
                 fw_cell,

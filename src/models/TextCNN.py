@@ -123,8 +123,9 @@ class TextCNN(object):
             h_pool = tf.concat(pooled_outputs, 2)
             h_pool_flat = tf.layers.flatten(h_pool)
 
-            # Add dropout
-            h_pool_flat = tf.nn.dropout(h_pool_flat, 1.0 - self.dropout)
+            # TODO: whether use dropout
+            # if self.mode == "train":
+            #     h_pool_flat = tf.nn.dropout(h_pool_flat, 1.0 - self.dropout)
 
         return h_pool_flat
 
