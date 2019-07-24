@@ -99,20 +99,21 @@ class APCNN(object):
 
     def textcnn(self, inputs, reuse, name):
         with tf.variable_scope(name, reuse=reuse):
-            # Create a convolution + maxpool layer for each filter size
-            # Use tf high level API tf.layers
-            pooled_outputs = []
+            # Create a convolution layer for each filter size
+            outputs = []
             for i, filter_size in enumerate(self.filter_sizes):
-                conv = tf.layers.conv1d(inputs, self.num_filters, filter_size,
+                conv = tf.layers.conv1d(inputs,
+                                        self.num_filters,
+                                        filter_size,
                                         padding="same",
                                         name='conv1d_%d' % filter_size)  # (batch_size, seq_length，num_filters)
-                # TODO: no activation func here in paper
-                # conv = tf.nn.relu(conv)
-                pooled_outputs.append(conv)
+                outputs.append(conv)
+
             # Combine all the features
-            outputs = tf.concat(pooled_outputs, 2, name="output")  # (batch_size, seq_length, num_filters_total)
-            if self.mode == "train":
-                outputs = tf.nn.dropout(outputs, self.dropout, name="output")
+            outputs = tf.concat(outputs, 2, name="output")  # (batch_size, seq_length, num_filters_total)
+            # TODO: whether use dropout there
+            # if self.mode == "train":
+            #     outputs = tf.nn.dropout(outputs, keep_prob=(1.0 - self.dropout), name="output")
 
         return outputs
 

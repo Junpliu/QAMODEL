@@ -140,6 +140,12 @@ def update_config(config):
         logger.info("# Creating model directory %s ..." % model_dir)
         os.makedirs(model_dir)
 
+    # Log output directory
+    log_dir = config.log_dir
+    if log_dir and not os.path.exists(log_dir):
+        logger.info("# Creating log directory %s ..." % log_dir)
+        os.makedirs(log_dir)
+
     # Evaluation
     config.best_accuracy = 0.0
     best_accuracy_dir = os.path.join(config.model_dir, "best_accuracy")
