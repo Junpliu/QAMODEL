@@ -168,8 +168,8 @@ def train(config, model_creator):
                                                w_max_len2=config.max_word_len2,
                                                c_max_len1=config.max_char_len1,
                                                c_max_len2=config.max_char_len2,
-                                               text_split="|", split="\t")
-    train_iterator = data_helper.triplet_batch_iterator(train_data, batch_size=config.batch_size, shuffle=True)
+                                               text_split="|", split="\t", mode="train")
+    train_iterator = data_helper.triplet_batch_iterator(train_data, batch_size=config.batch_size, shuffle=True, mode="train")
 
     eval_data = data_helper.load_triplet_data(config.dev_file, config.word_vocab_file, config.char_vocab_file,
                                               w_max_len1=config.max_word_len1,
@@ -226,7 +226,7 @@ def train(config, model_creator):
             # Finished going through the training dataset.  Go to next epoch.
             epoch_idx += 1
             config.epoch_step = 0
-            train_iterator = data_helper.batch_iterator(train_data, batch_size=config.batch_size, shuffle=True)
+            train_iterator = data_helper.triplet_batch_iterator(train_data, batch_size=config.batch_size, shuffle=True)
             continue
 
         step_time += (time.time() - start_time)
