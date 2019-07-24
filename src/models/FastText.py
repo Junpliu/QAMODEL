@@ -162,7 +162,7 @@ class FastText(object):
                     global_step=self.global_step,
                     decay_steps=self.decay_steps,
                     decay_rate=self.decay_rate,
-                    staircase=False,
+                    staircase=True,
                     name="learning_rate_decay")
                 if self.opt == 'adam':
                     opt = tf.train.AdamOptimizer(self.learning_rate)
