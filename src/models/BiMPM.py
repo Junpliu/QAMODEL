@@ -63,15 +63,15 @@ class BiMPM(object):
     def init_embedding(self):
         """Init embedding."""
         with tf.variable_scope("embed"):
-            # self.word_embedding, self.word_embed_size = \
-            #     model_helper.create_or_load_embed("word_embedding",
-            #                                       self.word_vocab_file,
-            #                                       self.word_embed_file,
-            #                                       self.word_vocab_size,
-            #                                       self.word_embed_size,
-            #                                       dtype=self.dtype,
-            #                                       trainable=True,
-            #                                       seed=self.random_seed)
+            self.word_embedding, self.word_embed_size = \
+                model_helper.create_or_load_embed("word_embedding",
+                                                  self.word_vocab_file,
+                                                  self.word_embed_file,
+                                                  self.word_vocab_size,
+                                                  self.word_embed_size,
+                                                  dtype=self.dtype,
+                                                  trainable=True,
+                                                  seed=self.random_seed)
             self.char_embedding, self.char_embed_size = \
                 model_helper.create_or_load_embed("char_embedding",
                                                   self.char_vocab_file,
@@ -108,19 +108,32 @@ class BiMPM(object):
             # ================== word representation layer ==================
             self.init_embedding()
             # TODO: add word level representation
-            # word_embed1 = tf.nn.embedding_lookup(self.word_embedding, self.word_ids1, "word_embed1")
-            # word_embed2 = tf.nn.embedding_lookup(self.word_embedding, self.word_ids2, "word_embed2")
+            word_embed1 = tf.nn.embedding_lookup(self.word_embedding, self.word_ids1, "word_embed1")
+            word_embed2 = tf.nn.embedding_lookup(self.word_embedding, self.word_ids2, "word_embed2")
+            word_mask_seq1 = tf.sequence_mask(self.word_len1, self.max_word_len1, dtype=tf.float32)
+            word_mask_seq2 = tf.sequence_mask(self.word_len2, self.max_word_len2, dtype=tf.float32)
+            word_input_dim = self.word_embed_size
+            
             char_embed1 = tf.nn.embedding_lookup(self.char_embedding, self.char_ids1, "char_embed1")
             char_embed2 = tf.nn.embedding_lookup(self.char_embedding, self.char_ids2, "char_embed2")
             char_mask_seq1 = tf.sequence_mask(self.char_len1, self.max_char_len1, dtype=tf.float32)
             char_mask_seq2 = tf.sequence_mask(self.char_len2, self.max_char_len2, dtype=tf.float32)
-            input_dim = self.char_embed_size
+            char_input_dim = self.char_embed_size
             is_training = True if self.mode == "train" else False
 
             # ================== Bilateral Matching ==================
-            (match_representation, match_dim) = match_utils.bilateral_match_func(
-                char_embed1, char_embed2, self.char_len1, self.char_len2,
-                char_mask_seq1, char_mask_seq2, input_dim, is_training, options=self.config)
+
+            with tf.variable_scope("word"):
+                (word_match_representation, word_match_dim) = match_utils.bilateral_match_func(
+                    word_embed1, word_embed2, self.word_len1, self.word_len2,
+                    word_mask_seq1, word_mask_seq2, word_input_dim, is_training, options=self.config)
+            with tf.variable_scope("char"):
+                (char_match_representation, char_match_dim) = match_utils.bilateral_match_func(
+                    char_embed1, char_embed2, self.char_len1, self.char_len2,
+                    char_mask_seq1, char_mask_seq2, char_input_dim, is_training, options=self.config)
+
+            match_representation = tf.concat([word_match_representation, char_match_representation], axis=-1)
+            match_dim = word_match_dim + char_match_dim
 
             # ================== Prediction Layer ====================
             sent_dense1 = tf.layers.dense(inputs=match_representation, units=match_dim//2, activation=tf.nn.relu)

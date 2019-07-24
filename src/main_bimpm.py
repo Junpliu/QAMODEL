@@ -29,16 +29,16 @@ flags = tf.flags
 FLAGS = flags.FLAGS
 
 # save model path
-flags.DEFINE_string("model_dir", "/ceph/qbkg/aitingliu/qq/src/model/BiMPM", "model path")
-flags.DEFINE_string("log_dir", "/ceph/qbkg/aitingliu/qq/src/logdir/BiMPM", "model path")
+flags.DEFINE_string("model_dir", "model/BiMPM", "model path")
+flags.DEFINE_string("log_dir", "logdir/BiMPM", "model path")
 
 # data file path
-flags.DEFINE_string("train_file", "/ceph/qbkg/aitingliu/qq/src/data/qq_simscore/train.txt", "Training data file.")
-flags.DEFINE_string("dev_file", "/ceph/qbkg/aitingliu/qq/src/data/qq_simscore/dev.txt", "Development data file.")
-flags.DEFINE_string("test_file", "/ceph/qbkg/aitingliu/qq/src/data/qq_simscore/test.txt", "Test data file.")
-flags.DEFINE_string("infer_file", "/ceph/qbkg/aitingliu/qq/src/data/qq_simscore/test.txt", "Test data file.")
-flags.DEFINE_string("word_vocab_file", "/ceph/qbkg/aitingliu/qq/src/data/qq_simscore/word.txt", "Word vocabulary file.")
-flags.DEFINE_string("char_vocab_file", "/ceph/qbkg/aitingliu/qq/src/data/qq_simscore/char.txt", "Char vocabulary file.")
+flags.DEFINE_string("train_file", "data/qq_simscore/train.txt", "Training data file.")
+flags.DEFINE_string("dev_file", "data/qq_simscore/dev.txt", "Development data file.")
+flags.DEFINE_string("test_file", "data/qq_simscore/test.txt", "Test data file.")
+flags.DEFINE_string("infer_file", "data/qq_simscore/test.txt", "Test data file.")
+flags.DEFINE_string("word_vocab_file", "data/qq_simscore/word.txt", "Word vocabulary file.")
+flags.DEFINE_string("char_vocab_file", "data/qq_simscore/char.txt", "Char vocabulary file.")
 flags.DEFINE_string("word_embed_file", None, "Pretrained embedding file.")
 flags.DEFINE_string("ckpt_name", "model.ckpt", "Checkpoint file name.")
 
@@ -52,8 +52,8 @@ flags.DEFINE_integer("epoch_step", 0, "Record where we were within an epoch.")
 flags.DEFINE_integer("num_train_epochs", 50, "Num epochs to train.")
 flags.DEFINE_integer("num_keep_ckpts", 5, "Max number fo checkpoints to keep.")
 flags.DEFINE_integer("num_train_steps", 20000, "Num epochs to train.")
-flags.DEFINE_integer("steps_per_stats", 100, "How many training steps to do per stats logging.")
-flags.DEFINE_integer("steps_per_eval", 1000, "How many training steps to do per evaluation.")
+flags.DEFINE_integer("steps_per_stats", 1, "How many training steps to do per stats logging.")
+flags.DEFINE_integer("steps_per_eval", 10, "How many training steps to do per evaluation.")
 flags.DEFINE_string("metrics", "accuracy,f1", "evaluations metrics (accuracy | f1)")
 flags.DEFINE_float("best_accuracy", 0.0, "Best accuracy score on dev set")
 flags.DEFINE_string("best_accuracy_dir", None, "Best accuracy model dir")
