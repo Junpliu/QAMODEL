@@ -5,6 +5,7 @@ src/data
 src/figures
 src/logs/
 src/model
+src/result
 *.pyc
 winsechang/XGBoost/data
 winsechang/XGBoost/model

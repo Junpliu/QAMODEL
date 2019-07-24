@@ -349,3 +349,40 @@
 #         summary, score = session.run([merged, tf_metric])
 #         print("[TF] batch {} score: {}".format(i, score))
 #         print(summary)
+
+
+import tensorflow as tf
+import numpy as np
+import time
+
+x = tf.constant(np.array([[1, 2, 3], [1, 2, 3]]), dtype=tf.float32)
+y = tf.constant(np.array([[4, 5, 6], [4, 5, 6]]), dtype=tf.float32)
+# x1 = tf.constant(np.array([[7, 8, 9]]), dtype=tf.float32)
+# y1 = tf.constant(np.array([[3, 2, 1]]), dtype=tf.float32)
+# x2 = tf.concat([x, x1], axis=-1)
+# y2 = tf.concat([y, y1], axis=-1)
+
+x_norm = tf.nn.l2_normalize(x, axis=1)
+y_norm = tf.nn.l2_normalize(y, axis=1)
+# x_norm1 = tf.nn.l2_normalize(x1, 0)
+# y_norm1 = tf.nn.l2_normalize(y1, 0)
+# x_norm2 = tf.nn.l2_normalize(x2, 0)
+# y_norm2 = tf.nn.l2_normalize(y2, 0)
+c = tf.reduce_sum(tf.multiply(x_norm, y_norm), axis=1)
+# s = tf.losses.cosine_distance(x_norm, y_norm, axis=1)
+# c1 = tf.reduce_sum(tf.multiply(x_norm1, y_norm1))
+# c2 = tf.reduce_sum(tf.multiply(x_norm2, y_norm2))
+cosine = tf.div(
+            tf.reduce_sum(x*y, 1),
+            tf.sqrt(tf.reduce_sum(x*x, 1)) * tf.sqrt(tf.reduce_sum(y*y, 1)) + 1e-8,
+            name="cosine")
+
+sess = tf.Session()
+a = time.time()
+res = sess.run(c)
+b = time.time()
+print(res, b-a)
+res1 = sess.run(cosine)
+c = time.time()
+print(res1, c-b)
+# print(sess.run([x_norm, y_norm, c, s, c1, c2]))

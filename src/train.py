@@ -236,7 +236,7 @@ def train(config, model_creator):
             b_word_ids1, b_word_ids2, b_word_len1, b_word_len2, b_char_ids1, b_char_ids2, b_char_len1, b_char_len2, b_labels = batch
             # for b in batch:
             #     print(b)
-            train_summary1, pred, step_loss, _, acc_op, rec_op, pre_op, auc_op, global_step, grad_norm, lr, sim = \
+            train_summary1, pred, step_loss, _, acc_op, rec_op, pre_op, auc_op, global_step, grad_norm, lr = \
                 loaded_train_model.train(train_sess, b_word_ids1, b_word_ids2, b_word_len1, b_word_len2,
                                          b_char_ids1, b_char_ids2, b_char_len1, b_char_len2, b_labels)
             train_summary2, step_acc, step_rec, step_pre, step_auc = \

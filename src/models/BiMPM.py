@@ -226,7 +226,7 @@ class BiMPM(object):
         output_feed = [self.train_summary1,
                        self.simscore, self.losses,
                        self.train_op, self.accuracy_op, self.recall_op, self.precision_op, self.auc_op,
-                       self.global_step, self.grad_norm, self.learning_rate, self.simscore]
+                       self.global_step, self.grad_norm, self.learning_rate]
         outputs = sess.run(output_feed, input_feed)
         return outputs
 
