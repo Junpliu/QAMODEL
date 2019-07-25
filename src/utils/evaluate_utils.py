@@ -7,6 +7,7 @@ from sklearn import metrics
 
 def metric(input_path, threshold):
     """
+    QQ pair级别指标.
     [data format]: query\tquestion\tlabel\tsimscore
         艾滋病|皮肤|初期|症状	艾滋病|的|初期|都|有|什么|症状	1	0.88182044
         开户行|行号|怎么|查询	开户行|的|行号|是|什么	0	9.426536e-18
@@ -35,9 +36,13 @@ def metric(input_path, threshold):
 
 
 def total_metric(input_path, output_path, threshold):
-    # input_path = sys.argv[1]
-    # output_path = sys.argv[2]
-    # threshold = float(sys.argv[3])
+    """
+    Query级别指标.
+    :param input_path:
+    :param output_path:
+    :param threshold:
+    :return:
+    """
     output_dir = os.path.dirname(output_path)
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
