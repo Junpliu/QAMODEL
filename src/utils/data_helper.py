@@ -13,8 +13,8 @@ import collections
 import numpy as np
 import sklearn
 
-from . import vocab_utils
-# import vocab_utils
+# from . import vocab_utils
+import vocab_utils
 
 logger = logging.getLogger(__name__)
 
@@ -295,11 +295,24 @@ def data_to_triplet(in_path, out_path):
     print("# query has positive question %d" % count1)
     print("# query dont have positive question %d" % count0)
     print("# (query,question+,question-) %d" % count)
+    print("\n")
 
 
 # raw_data_file = "../data/qq_simscore/merge_20190508.txt"
 # triplet_data_file = "../data/qq_simscore/triplet/triplet.txt"
 # data_to_triplet(raw_data_file, triplet_data_file)
+
+# train_data_file = "../data/qq_simscore/train.txt"
+# train_triplet_data_file = "../data/qq_simscore/triplet/train.txt"
+# data_to_triplet(train_data_file, train_triplet_data_file)
+#
+# dev_data_file = "../data/qq_simscore/dev.txt"
+# dev_triplet_data_file = "../data/qq_simscore/triplet/dev.txt"
+# data_to_triplet(dev_data_file, dev_triplet_data_file)
+#
+# test_data_file = "../data/qq_simscore/test.txt"
+# test_triplet_data_file = "../data/qq_simscore/triplet/triplet.txt"
+# data_to_triplet(test_data_file, test_triplet_data_file)
 
 
 def split_triplet_data(raw_file, train_file, dev_file, test_file, infer_file, dev_ratio=0.1, test_ratio=0.1):
@@ -512,8 +525,8 @@ train_data_file = "../data/qq_simscore/triplet/train.txt"
 infer_data_file = "../data/qq_simscore/triplet/infer.txt"
 word_index_file = "../data/qq_simscore/triplet/word.txt"
 char_index_file = "../data/qq_simscore/triplet/char.txt"
-# vocab_utils.create_vocab_from_triplet_data(train_data_file, word_index_file, split="|", char_level=False)
-# vocab_utils.create_vocab_from_triplet_data(train_data_file, char_index_file, split="|", char_level=True)
+vocab_utils.create_vocab_from_triplet_data(train_data_file, word_index_file, split="|", char_level=False)
+vocab_utils.create_vocab_from_triplet_data(train_data_file, char_index_file, split="|", char_level=True)
 
 
 # train_data = load_triplet_data(train_data_file, word_index_file, char_index_file, mode="train")
