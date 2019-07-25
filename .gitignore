@@ -8,6 +8,7 @@ src/model
 src/result
 src/logdir
 *.pyc
+src/evaluate.py
 winsechang/XGBoost/data
 winsechang/XGBoost/model
 winsechang/XGBoost/model_test
