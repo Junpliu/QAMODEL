@@ -13,8 +13,8 @@ import collections
 import numpy as np
 import sklearn
 
-# from . import vocab_utils
-import vocab_utils
+from . import vocab_utils
+# import vocab_utils
 
 logger = logging.getLogger(__name__)
 
@@ -525,9 +525,9 @@ train_data_file = "../data/qq_simscore/triplet/train.txt"
 infer_data_file = "../data/qq_simscore/triplet/infer.txt"
 word_index_file = "../data/qq_simscore/triplet/word.txt"
 char_index_file = "../data/qq_simscore/triplet/char.txt"
-vocab_utils.create_vocab_from_triplet_data(train_data_file, word_index_file, split="|", char_level=False)
-vocab_utils.create_vocab_from_triplet_data(train_data_file, char_index_file, split="|", char_level=True)
-
+# vocab_utils.create_vocab_from_triplet_data(train_data_file, word_index_file, split="|", char_level=False)
+# vocab_utils.create_vocab_from_triplet_data(train_data_file, char_index_file, split="|", char_level=True)
+#
 
 # train_data = load_triplet_data(train_data_file, word_index_file, char_index_file, mode="train")
 # train_iter = triplet_batch_iterator(train_data, 2, mode="train")
