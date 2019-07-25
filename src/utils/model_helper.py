@@ -129,7 +129,10 @@ def create_or_load_embed(embed_name, vocab_file, embed_file, vocab_size, embed_s
         else:
             embedding, embed_size = _create_pretrained_emb_from_txt_const(vocab_file, embed_file)
     else:
-        embedding = tf.get_variable(
-            embed_name, [vocab_size, embed_size], dtype,
-            initializer=tf.random_uniform_initializer(-1.0, 1.0))
+        unk_embed = tf.Variable(np.random.uniform(-0.1, 0.1, size=[1, embed_size]), dtype=dtype, trainable=True)
+        pad_embed = tf.Variable(np.zeros(shape=(1, embed_size), dtype=dtype), trainable=False)
+        other_embedding = tf.get_variable(
+            embed_name, [vocab_size-2, embed_size], dtype,
+            initializer=tf.random_uniform_initializer(-0.1, 0.1), trainable=True)
+        embedding = tf.concat([unk_embed, pad_embed, other_embedding], axis=0)
     return embedding, embed_size
