@@ -136,9 +136,9 @@ class BiMPM(object):
             match_dim = word_match_dim + char_match_dim
 
             # ================== Prediction Layer ====================
-            sent_dense1 = tf.layers.dense(inputs=match_representation, units=match_dim//2, activation=tf.nn.relu)
-            sent_dense1 = tf.nn.dropout(sent_dense1, keep_prob=(1.0 - self.dropout_rate))
-            final_out = tf.layers.dense(inputs=sent_dense1, units=self.num_classes)
+            sent_dense = tf.layers.dense(inputs=match_representation, units=match_dim//2, activation=tf.nn.relu)
+            sent_dense = tf.nn.dropout(sent_dense, keep_prob=(1.0 - self.dropout_rate))
+            final_out = tf.layers.dense(inputs=sent_dense, units=self.num_classes)
 
             self.logits = final_out
 

@@ -119,8 +119,8 @@ class APCNNT(object):
             # Combine all the features
             outputs = tf.concat(outputs, 2, name="output")  # (batch_size, seq_length, num_filters_total)
             # TODO: whether use dropout there
-            # if self.mode == "train":
-            #     outputs = tf.nn.dropout(outputs, keep_prob=(1.0 - self.dropout), name="output")
+            if self.mode == "train":
+                outputs = tf.nn.dropout(outputs, keep_prob=(1.0 - self.dropout), name="output")
 
         return outputs
 
@@ -177,15 +177,26 @@ class APCNNT(object):
             word_reps_seq1, word_reps_seq2 = self.attentive_pooling(word_rep1, word_rep2, tf.AUTO_REUSE, "word")
             char_reps_seq1, char_reps_seq2 = self.attentive_pooling(char_rep1, char_rep2, tf.AUTO_REUSE, "char")
 
-            word_norm1 = tf.nn.l2_normalize(word_reps_seq1, axis=1)
-            word_norm2 = tf.nn.l2_normalize(word_reps_seq2, axis=1)
-            char_norm1 = tf.nn.l2_normalize(char_reps_seq1, axis=1)
-            char_norm2 = tf.nn.l2_normalize(char_reps_seq2, axis=1)
+            # TODO: use MLP to compute similarity score instead of cosine
+            # word_norm1 = tf.nn.l2_normalize(word_reps_seq1, axis=1)
+            # word_norm2 = tf.nn.l2_normalize(word_reps_seq2, axis=1)
+            # char_norm1 = tf.nn.l2_normalize(char_reps_seq1, axis=1)
+            # char_norm2 = tf.nn.l2_normalize(char_reps_seq2, axis=1)
+            # word_cosine_12 = tf.reduce_sum(tf.multiply(word_norm1, word_norm2), axis=1)
+            # char_cosine_12 = tf.reduce_sum(tf.multiply(char_norm1, char_norm2), axis=1)
+            # self.cosine_12 = word_cosine_12 * 0.5 + char_cosine_12 * 0.5
 
-            word_cosine_12 = tf.reduce_sum(tf.multiply(word_norm1, word_norm2), axis=1)
-            char_cosine_12 = tf.reduce_sum(tf.multiply(char_norm1, char_norm2), axis=1)
+            sent_merge1 = tf.concat([word_reps_seq1, char_reps_seq1], axis=-1)
+            sent_merge2 = tf.concat([word_reps_seq2, char_reps_seq2], axis=-1)
+            sent_merge12 = tf.concat([sent_merge1, sent_merge2], axis=-1)
 
-            self.cosine_12 = word_cosine_12 * 0.5 + char_cosine_12 * 0.5
+            dense1 = tf.layers.Dense(self.fc_size, activation=tf.nn.relu)
+            dense2 = tf.layers.Dense(1, activation=tf.nn.sigmoid)
+
+            word_mlp_12 = dense1(sent_merge12)
+            word_mlp_12 = tf.nn.dropout(word_mlp_12, keep_prob=(1.0 - self.dropout))
+            word_mlp_12 = dense2(word_mlp_12)
+            self.word_mlp_12 = word_mlp_12
 
             if self.mode != "infer":
                 word_embed3 = tf.nn.embedding_lookup(self.word_embedding, self.word_ids3, "word_embed3")
@@ -197,15 +208,22 @@ class APCNNT(object):
                 word_reps_seq1, word_reps_seq3 = self.attentive_pooling(word_rep1, word_rep3, tf.AUTO_REUSE, "word")
                 char_reps_seq1, char_reps_seq3 = self.attentive_pooling(char_rep1, char_rep3, tf.AUTO_REUSE, "char")
 
-                word_norm1 = tf.nn.l2_normalize(word_reps_seq1, axis=1)
-                word_norm3 = tf.nn.l2_normalize(word_reps_seq3, axis=1)
-                char_norm1 = tf.nn.l2_normalize(char_reps_seq1, axis=1)
-                char_norm3 = tf.nn.l2_normalize(char_reps_seq3, axis=1)
+                # word_norm1 = tf.nn.l2_normalize(word_reps_seq1, axis=1)
+                # word_norm3 = tf.nn.l2_normalize(word_reps_seq3, axis=1)
+                # char_norm1 = tf.nn.l2_normalize(char_reps_seq1, axis=1)
+                # char_norm3 = tf.nn.l2_normalize(char_reps_seq3, axis=1)
+                # word_cosine_13 = tf.reduce_sum(tf.multiply(word_norm1, word_norm3), axis=1)
+                # char_cosine_13 = tf.reduce_sum(tf.multiply(char_norm1, char_norm3), axis=1)
+                # self.cosine_13 = word_cosine_13 * 0.5 + char_cosine_13 * 0.5
 
-                word_cosine_13 = tf.reduce_sum(tf.multiply(word_norm1, word_norm3), axis=1)
-                char_cosine_13 = tf.reduce_sum(tf.multiply(char_norm1, char_norm3), axis=1)
+                sent_merge1 = tf.concat([word_reps_seq1, char_reps_seq1], axis=-1)
+                sent_merge3 = tf.concat([word_reps_seq3, char_reps_seq3], axis=-1)
+                sent_merge13 = tf.concat([sent_merge1, sent_merge3], axis=-1)
 
-                self.cosine_13 = word_cosine_13 * 0.5 + char_cosine_13 * 0.5
+                word_mlp_13 = dense1(sent_merge13)
+                word_mlp_13 = tf.nn.dropout(word_mlp_13, keep_prob=(1.0 - self.dropout))
+                word_mlp_13 = dense2(word_mlp_13)
+                self.word_mlp_13 = word_mlp_13
 
     def add_loss_op(self):
         # with tf.variable_scope("indicators"):
@@ -216,7 +234,7 @@ class APCNNT(object):
         if self.mode != "infer":
             with tf.variable_scope("loss"):
                 self.losses = tf.reduce_mean(
-                    tf.maximum(0.0, self.margin - self.cosine_12 + self.cosine_13), name="max_margin_loss")
+                    tf.maximum(0.0, self.margin - self.word_mlp_12 + self.word_mlp_13), name="max_margin_loss")
                 if self.l2_reg_lambda > 0.0:
                     self.l2_losses = tf.add_n(
                         [tf.nn.l2_loss(tf.cast(v, self.dtype)) for v in tf.trainable_variables()],
@@ -306,7 +324,7 @@ class APCNNT(object):
             self.char_len3: b_char_len3}
 
         output_feed = [self.train_summary1,
-                       self.cosine_12, self.losses,
+                       self.word_mlp_12, self.losses,
                        self.train_op,
                        self.global_step, self.grad_norm, self.learning_rate]
         outputs = sess.run(output_feed, input_feed)
@@ -330,7 +348,7 @@ class APCNNT(object):
             self.char_len3: b_char_len3}
 
         output_feed = [self.eval_summary1,
-                       self.cosine_12, self.losses]
+                       self.word_mlp_12, self.losses]
         outputs = sess.run(output_feed, input_feed)
         return outputs
 
@@ -349,6 +367,6 @@ class APCNNT(object):
 
             self.labels: b_labels}
 
-        output_feed = self.cosine_12
+        output_feed = self.word_mlp_12
         outputs = sess.run(output_feed, input_feed)
         return outputs

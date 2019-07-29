@@ -135,9 +135,11 @@ class ARCIIT(object):
             con2d_2 = tf.layers.conv2d(pool2d_2, self.num_filters, (2, 2), padding="same", name="5/con2d_2", activation=tf.nn.relu)
             pool2d_3 = tf.layers.max_pooling2d(con2d_2, (2, 2), 2, padding="same", name="6/pool2d_3")
             flatten = tf.layers.flatten(pool2d_3, name="flatten")
+            flatten = tf.nn.dropout(flatten, keep_prob=(1.0-self.dropout))
 
             # Layer-7-8 MLP
             fc_1 = tf.layers.dense(flatten, self.fc_size, name="7/mlp_1", activation=tf.nn.relu)
+            fc_1 = tf.nn.dropout(fc_1, keep_prob=(1.0-self.dropout))
             fc_2 = tf.layers.dense(fc_1, 1, name="8/mlp_2", activation=tf.nn.sigmoid)
         return fc_2
 

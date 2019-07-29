@@ -87,22 +87,25 @@ def run_eval(config, eval_model, eval_sess, eval_data, model_dir, ckpt_name, sum
     summary_writer.add_summary(eval_summary2, global_step=global_step)
     # summary_writer.close()
 
-    for metric in config.metrics.split(","):
-        best_metric_label = "best_%s" % metric
-        if save_on_best and metric != "eval_loss" and scores[metric] > getattr(config, best_metric_label):
-            setattr(config, best_metric_label, scores[metric])
-            loaded_eval_model.saver.save(
-                eval_sess,
-                os.path.join(
-                    getattr(config, best_metric_label + "_dir"), ckpt_name),
-                loaded_eval_model.global_step)
-        if save_on_best and metric == "eval_loss" and scores[metric] < getattr(config, best_metric_label):
-            setattr(config, best_metric_label, scores[metric])
-            loaded_eval_model.saver.save(
-                eval_sess,
-                os.path.join(
-                    getattr(config, best_metric_label + "_dir"), ckpt_name),
-                loaded_eval_model.global_step)
+    # for metric in config.metrics.split(","):
+    #     best_metric_label = "best_%s" % metric
+    #     if save_on_best and metric != "eval_loss" and scores[metric] > getattr(config, best_metric_label):
+    #         setattr(config, best_metric_label, scores[metric])
+    #         loaded_eval_model.saver.save(
+    #             eval_sess,
+    #             os.path.join(
+    #                 getattr(config, best_metric_label + "_dir"), ckpt_name),
+    #             loaded_eval_model.global_step)
+    #         print("save", best_metric_label)
+    best_metric_label = "best_eval_loss"
+    if save_on_best and scores["eval_loss"] < getattr(config, best_metric_label):
+        setattr(config, best_metric_label, scores["eval_loss"])
+        loaded_eval_model.saver.save(
+            eval_sess,
+            os.path.join(
+                getattr(config, best_metric_label + "_dir"), ckpt_name),
+            loaded_eval_model.global_step)
+        print("save", best_metric_label)
 
 
 def run_test(config, eval_model, eval_sess, data_file, model_dir):
@@ -153,27 +156,34 @@ def run_test(config, eval_model, eval_sess, data_file, model_dir):
 
 
 def test(config, model_creator):
-    for metric in config.metrics.split(","):
-        best_metric_label = "best_" + metric
-        model_dir = getattr(config, best_metric_label + "_dir")
+    # for metric in config.metrics.split(","):
+    best_metric_label = "best_eval_loss"
+    model_dir = getattr(config, best_metric_label + "_dir")
 
-        # logger.info("Start evaluating saved best model on training-set.")
-        # eval_model = model_helper.create_model(model_creator, config, mode="eval")
-        # session_config = utils.get_config_proto()
-        # eval_sess = tf.Session(config=session_config, graph=eval_model.graph)
-        # run_test(config, eval_model, eval_sess, config.train_file, model_dir)
-        #
-        # logger.info("Start evaluating saved best model on dev-set.")
-        # eval_model = model_helper.create_model(model_creator, config, mode="eval")
-        # session_config = utils.get_config_proto()
-        # eval_sess = tf.Session(config=session_config, graph=eval_model.graph)
-        # run_test(config, eval_model, eval_sess, config.dev_file, model_dir)
+    # logger.info("Start evaluating saved best model on training-set.")
+    # eval_model = model_helper.create_model(model_creator, config, mode="eval")
+    # session_config = utils.get_config_proto()
+    # eval_sess = tf.Session(config=session_config, graph=eval_model.graph)
+    # run_test(config, eval_model, eval_sess, config.train_file, model_dir)
+    #
+    # logger.info("Start evaluating saved best model on dev-set.")
+    # eval_model = model_helper.create_model(model_creator, config, mode="eval")
+    # session_config = utils.get_config_proto()
+    # eval_sess = tf.Session(config=session_config, graph=eval_model.graph)
+    # run_test(config, eval_model, eval_sess, config.dev_file, model_dir)
 
-        logger.info("Start evaluating saved best model on test-set.")
-        eval_model = model_helper.create_model(model_creator, config, mode="eval")
-        session_config = utils.get_config_proto()
-        eval_sess = tf.Session(config=session_config, graph=eval_model.graph)
-        run_test(config, eval_model, eval_sess, config.test_file, model_dir)
+    logger.info("Start evaluating saved best model on test-set.")
+    eval_model = model_helper.create_model(model_creator, config, mode="eval")
+    session_config = utils.get_config_proto()
+    eval_sess = tf.Session(config=session_config, graph=eval_model.graph)
+    run_test(config, eval_model, eval_sess, config.test_file, model_dir)
+
+    model_dir = config.model_dir
+    logger.info("Run test on test-set with latest model.")
+    eval_model = model_helper.create_model(model_creator, config, mode="eval")
+    session_config = utils.get_config_proto()
+    eval_sess = tf.Session(config=session_config, graph=eval_model.graph)
+    run_test(config, eval_model, eval_sess, config.test_file, model_dir)
 
 
 def train(config, model_creator):

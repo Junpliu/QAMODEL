@@ -111,11 +111,11 @@ class SCWLSTM(object):
                 raise ValueError("Unknown unit type %s!" % unit_type)
 
             # TODO: whether use dropout
-            # if self.mode == "train":
-            #     fw_cell = tf.nn.rnn_cell.DropoutWrapper(cell=fw_cell,
-            #                                             output_keep_prob=(1.0 - self.dropout))
-            #     bw_cell = tf.nn.rnn_cell.DropoutWrapper(cell=bw_cell,
-            #                                             output_keep_prob=(1.0 - self.dropout))
+            if self.mode == "train":
+                fw_cell = tf.nn.rnn_cell.DropoutWrapper(cell=fw_cell,
+                                                        output_keep_prob=(1.0 - self.dropout))
+                bw_cell = tf.nn.rnn_cell.DropoutWrapper(cell=bw_cell,
+                                                        output_keep_prob=(1.0 - self.dropout))
 
             bi_outputs, bi_state = tf.nn.bidirectional_dynamic_rnn(
                 fw_cell,
@@ -157,8 +157,7 @@ class SCWLSTM(object):
             reps_match = tf.concat([reps_cat, reps_add, reps_sub, reps_abs_sub, reps_mul], axis=1)
 
             sent_dense = tf.layers.dense(inputs=reps_match, units=self.fc_size, activation=tf.nn.relu)
-            if self.mode == "train":
-                sent_dense = tf.nn.dropout(sent_dense, keep_prob=(1.0 - self.dropout))
+            sent_dense = tf.nn.dropout(sent_dense, keep_prob=(1.0 - self.dropout))
             final_out = tf.layers.dense(inputs=sent_dense, units=self.num_classes)
 
             self.logits = final_out

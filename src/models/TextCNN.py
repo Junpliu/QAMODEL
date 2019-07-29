@@ -124,8 +124,8 @@ class TextCNN(object):
             h_pool_flat = tf.layers.flatten(h_pool)
 
             # TODO: whether use dropout
-            # if self.mode == "train":
-            #     h_pool_flat = tf.nn.dropout(h_pool_flat, 1.0 - self.dropout)
+            if self.mode == "train":
+                h_pool_flat = tf.nn.dropout(h_pool_flat, 1.0 - self.dropout)
 
         return h_pool_flat
 
@@ -157,9 +157,9 @@ class TextCNN(object):
             reps_mul = tf.multiply(sent_merge1, sent_merge2)
             reps_match = tf.concat([reps_cat, reps_add, reps_sub, reps_abs_sub, reps_mul], axis=1)
 
-            sent_dense1 = tf.layers.dense(inputs=reps_match, units=self.fc_size, activation=tf.nn.relu)
-            sent_dense1 = tf.nn.dropout(sent_dense1, keep_prob=(1.0 - self.dropout))
-            final_out = tf.layers.dense(inputs=sent_dense1, units=self.num_classes)
+            sent_dense = tf.layers.dense(inputs=reps_match, units=self.fc_size, activation=tf.nn.relu)
+            sent_dense = tf.nn.dropout(sent_dense, keep_prob=(1.0 - self.dropout))
+            final_out = tf.layers.dense(inputs=sent_dense, units=self.num_classes)
 
             self.logits = final_out
 

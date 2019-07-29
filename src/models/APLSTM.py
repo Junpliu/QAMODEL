@@ -110,11 +110,11 @@ class APLSTM(object):
             else:
                 raise ValueError("Unknown unit type %s!" % unit_type)
             # TODO: whether use dropout
-            # if self.mode == "train":
-            #     fw_cell = tf.nn.rnn_cell.DropoutWrapper(cell=fw_cell,
-            #                                             output_keep_prob=(1.0 - self.dropout))
-            #     bw_cell = tf.nn.rnn_cell.DropoutWrapper(cell=bw_cell,
-            #                                             output_keep_prob=(1.0 - self.dropout))
+            if self.mode == "train":
+                fw_cell = tf.nn.rnn_cell.DropoutWrapper(cell=fw_cell,
+                                                        output_keep_prob=(1.0 - self.dropout))
+                bw_cell = tf.nn.rnn_cell.DropoutWrapper(cell=bw_cell,
+                                                        output_keep_prob=(1.0 - self.dropout))
 
             bi_outputs, bi_state = tf.nn.bidirectional_dynamic_rnn(
                 fw_cell,
@@ -181,6 +181,7 @@ class APLSTM(object):
             char_out2, char_rep2 = self.bi_rnn(char_embed2, self.char_len2, self.num_units,
                                                self.unit_type, self.dtype, tf.AUTO_REUSE, "char")
 
+            # TODO: different from SCWLSTM
             word_att1, word_att2 = self.attentive_pooling(word_out1, word_out2, False, "word")
             char_att1, char_att2 = self.attentive_pooling(char_out1, char_out2, False, "char")
 
@@ -194,9 +195,9 @@ class APLSTM(object):
             reps_mul = tf.multiply(sent_merge1, sent_merge2)
             reps_match = tf.concat([reps_cat, reps_add, reps_sub, reps_abs_sub, reps_mul], axis=1)
 
-            sent_dense1 = tf.layers.dense(inputs=reps_match, units=self.fc_size, activation=tf.nn.relu)
-            sent_dense_drop1 = tf.nn.dropout(sent_dense1, keep_prob=(1.0 - self.dropout))
-            final_out = tf.layers.dense(inputs=sent_dense_drop1, units=self.num_classes)
+            sent_dense = tf.layers.dense(inputs=reps_match, units=self.fc_size, activation=tf.nn.relu)
+            sent_dense = tf.nn.dropout(sent_dense, keep_prob=(1.0 - self.dropout))
+            final_out = tf.layers.dense(inputs=sent_dense, units=self.num_classes)
 
             self.logits = final_out
 

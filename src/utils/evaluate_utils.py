@@ -3,6 +3,8 @@
 import os
 import pandas as pd
 from sklearn import metrics
+import matplotlib.pyplot as plt
+import numpy as np
 
 
 def metric(input_path, threshold):
@@ -104,4 +106,21 @@ def total_metric(input_path, output_path, threshold):
     print("REC : %.4f" % REC)
     print("F1  : %.4f" % F1)
     print("\n")
+
+
+def print_fig(in_path, output_path):
+    if not os.path.exists(output_path):
+        os.makedirs(output_path)
+    df = pd.read_csv(in_path, sep="\t", encoding="utf-8", names=["q1", "q2", "label", "sim"])
+    label = np.array(df.label)
+    pred = np.array(df.sim)
+    x = np.array(range(len(label)))
+    x_ = np.array([i + 0.4 for i in x])
+    fig = plt.figure()
+    plt.bar(x, label, width=0.4)
+    plt.bar(x_, pred, width=0.4)
+    print(label, pred)
+    fig_name = "fenbu.png"
+    plt.savefig(os.path.join(output_path, fig_name))
+    plt.show()
 

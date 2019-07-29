@@ -112,8 +112,8 @@ class APCNN(object):
             # Combine all the features
             outputs = tf.concat(outputs, 2, name="output")  # (batch_size, seq_length, num_filters_total)
             # TODO: whether use dropout there
-            # if self.mode == "train":
-            #     outputs = tf.nn.dropout(outputs, keep_prob=(1.0 - self.dropout), name="output")
+            if self.mode == "train":
+                outputs = tf.nn.dropout(outputs, keep_prob=(1.0 - self.dropout), name="output")
 
         return outputs
 
@@ -180,9 +180,9 @@ class APCNN(object):
             reps_mul = tf.multiply(sent_merge1, sent_merge2)
             reps_match = tf.concat([reps_cat, reps_add, reps_sub, reps_abs_sub, reps_mul], axis=1)
 
-            sent_dense1 = tf.layers.dense(inputs=reps_match, units=self.fc_size, activation=tf.nn.relu)
-            sent_dense1 = tf.nn.dropout(sent_dense1, keep_prob=(1.0 - self.dropout))
-            final_out = tf.layers.dense(inputs=sent_dense1, units=self.num_classes)
+            sent_dense = tf.layers.dense(inputs=reps_match, units=self.fc_size, activation=tf.nn.relu)
+            sent_dense = tf.nn.dropout(sent_dense, keep_prob=(1.0 - self.dropout))
+            final_out = tf.layers.dense(inputs=sent_dense, units=self.num_classes)
 
             self.logits = final_out
 

@@ -138,6 +138,7 @@ class ARCII(object):
             con2d_2 = tf.layers.conv2d(pool2d_2, self.num_filters, (2, 2), 1, "same", name="5/con2d_2", activation=tf.nn.relu)
             pool2d_3 = tf.layers.max_pooling2d(con2d_2, (2, 2), 2, "same", name="6/pool2d_3")
             flatten = tf.layers.flatten(pool2d_3, name="flatten")
+            flatten = tf.nn.dropout(flatten, keep_prob=(1.0 - self.dropout))
             # fc_1 = tf.layers.dense(flatten, self.fc_size, tf.nn.relu, name="7/mlp_1")
             # fc_2 = tf.layers.dense(fc_1, self.num_classes, name="8/mlp_2")
         return flatten
@@ -161,10 +162,10 @@ class ARCII(object):
             # reps_abs_sub = tf.abs(tf.subtract(sent_merge1, sent_merge2))
             # reps_mul = tf.multiply(sent_merge1, sent_merge2)
             # reps_match = tf.concat([reps_cat, reps_add, reps_sub, reps_abs_sub, reps_mul], axis=1)
-            #
-            sent_dense1 = tf.layers.dense(inputs=sent_merge, units=self.fc_size, activation=tf.nn.relu)
-            sent_dense1 = tf.nn.dropout(sent_dense1, keep_prob=(1.0 - self.dropout))
-            final_out = tf.layers.dense(inputs=sent_dense1, units=self.num_classes)
+
+            sent_dense = tf.layers.dense(inputs=sent_merge, units=self.fc_size, activation=tf.nn.relu)
+            sent_dense = tf.nn.dropout(sent_dense, keep_prob=(1.0 - self.dropout))
+            final_out = tf.layers.dense(inputs=sent_dense, units=self.num_classes)
 
             self.logits = final_out
 
