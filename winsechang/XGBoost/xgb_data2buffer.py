@@ -1,10 +1,10 @@
-#/usr/bin/python
+# /usr/bin/python
 # -*- coding:utf-8 -*-
-'''
+"""
 Author: changjingdong
 Date: 20190614
 Desc: xgboost model to predict similar questions
-'''
+"""
 import sys
 import codecs
 from collections import defaultdict
@@ -18,10 +18,11 @@ from scipy.spatial.distance import cosine, cityblock, jaccard, canberra, euclide
 import pickle as pk
 import os
 from data_helper import *
-sys.path.insert(0, '../common')
-from commen_function import *
 
-os.environ['CUDA_VISIBLE_DEVICES']='4'
+sys.path.insert(0, '../common')
+from common_function import *
+
+os.environ['CUDA_VISIBLE_DEVICES'] = '4'
 pd.set_option('precision', 14)
 
 TEST_DATA_FILE = 'data/partition/test.txt'
@@ -30,8 +31,8 @@ WORD_COUNTS = 'data/word_counts'
 
 MODEL_PATH = 'model/model'
 
-EMBEDDING_DIM = 200 
-EMBEDDING_FILE = '../../wdic/word2vec.dict' 
+EMBEDDING_DIM = 200
+EMBEDDING_FILE = '../../wdic/word2vec.dict'
 STOPWORD_FILE = '../../wdic/stopwords.txt'
 
 #################################################################
@@ -47,7 +48,7 @@ print('Stopword is : ' + "|".join(list(stop_words.keys())))
 ############# reading data  #################################################
 print("Starting to read training samples...")
 test_texts_1, test_texts_2, test_labels = read_data(TEST_DATA_FILE)
-test_orig =  pd.DataFrame({"question1": test_texts_1, "question2": test_texts_2})
+test_orig = pd.DataFrame({"question1": test_texts_1, "question2": test_texts_2})
 print("Finish reading training samples !")
 
 ############### read words counts #########################################
@@ -64,9 +65,8 @@ x_test = pd.concat((x_test_basic, x_test_more), axis=1)
 x_test.columns = [str(i) for i in range(x_test.shape[1])]
 print("x_test shape : ", x_test.shape)
 
-print (x_test)
+print(x_test)
 x_test.to_csv('tmp/fea.csv', sep=',', header=True, index=True)
 
 ################ save DMatrix binary data to make loading faster #########
-#xgb.DMatrix(x_test).save_binary('test.buffer_1000')
-
+# xgb.DMatrix(x_test).save_binary('test.buffer_1000')

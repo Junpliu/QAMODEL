@@ -1,10 +1,10 @@
-#/usr/bin/python
+# /usr/bin/python
 # -*- coding:utf-8 -*-
-'''
+"""
 Author: changjingdong
 Date: 20190614
 Desc: xgboost model to predict similar questions
-'''
+"""
 import sys
 import codecs
 from collections import defaultdict
@@ -18,10 +18,11 @@ from scipy.spatial.distance import cosine, cityblock, jaccard, canberra, euclide
 import pickle as pk
 import os
 from data_helper import *
-sys.path.insert(0, '../common')
-from commen_function import *
 
-os.environ['CUDA_VISIBLE_DEVICES']='4'
+sys.path.insert(0, '../common')
+from common_function import *
+
+os.environ['CUDA_VISIBLE_DEVICES'] = '4'
 
 TEST_DATA_FILE = 'data/partition/test.txt'
 PRE_DATA_FILE = 'data/partition/results_xgb.csv_tmp_'
@@ -29,8 +30,8 @@ WORD_COUNTS = 'data/word_counts'
 
 MODEL_PATH = 'model/model'
 
-EMBEDDING_DIM = 200 
-EMBEDDING_FILE = '../../wdic/word2vec.dict' 
+EMBEDDING_DIM = 200
+EMBEDDING_FILE = '../../wdic/word2vec.dict'
 STOPWORD_FILE = '../../wdic/stopwords.txt'
 
 #################################################################
@@ -46,7 +47,7 @@ print('Stopword is : ' + "|".join(list(stop_words.keys())))
 ############# reading data  #################################################
 print("Starting to read training samples...")
 test_texts_1, test_texts_2, test_labels = read_data(TEST_DATA_FILE)
-test_orig =  pd.DataFrame({"question1": test_texts_1, "question2": test_texts_2})
+test_orig = pd.DataFrame({"question1": test_texts_1, "question2": test_texts_2})
 print("Finish reading training samples !")
 
 ############### read words counts #########################################
@@ -72,39 +73,41 @@ bst.load_model(MODEL_PATH)  # load data
 
 best_ntree_limit = 647
 p_test = bst.predict(xgb.DMatrix(x_test))
-df_sub = pd.DataFrame({'user_query':test_texts_1, 'candidate_query':test_texts_2, 'label':test_labels, 'score':p_test.ravel()})
-df_sub.to_csv(PRE_DATA_FILE + str(best_ntree_limit), 
-        index=False, columns=['user_query', 'candidate_query', 'label', 'score'], encoding='utf-8')
+df_sub = pd.DataFrame(
+    {'user_query': test_texts_1, 'candidate_query': test_texts_2, 'label': test_labels, 'score': p_test.ravel()})
+df_sub.to_csv(PRE_DATA_FILE + str(best_ntree_limit),
+              index=False, columns=['user_query', 'candidate_query', 'label', 'score'], encoding='utf-8')
 
 best_ntree_limit = 596
 p_test = bst.predict(xgb.DMatrix(x_test), ntree_limit=best_ntree_limit)
-df_sub = pd.DataFrame({'user_query':test_texts_1, 'candidate_query':test_texts_2, 'label':test_labels, 'score':p_test.ravel()})
-df_sub.to_csv(PRE_DATA_FILE + str(best_ntree_limit), 
-        index=False, columns=['user_query', 'candidate_query', 'label', 'score'], encoding='utf-8')
+df_sub = pd.DataFrame(
+    {'user_query': test_texts_1, 'candidate_query': test_texts_2, 'label': test_labels, 'score': p_test.ravel()})
+df_sub.to_csv(PRE_DATA_FILE + str(best_ntree_limit),
+              index=False, columns=['user_query', 'candidate_query', 'label', 'score'], encoding='utf-8')
 
 best_ntree_limit = 597
 p_test = bst.predict(xgb.DMatrix(x_test), ntree_limit=best_ntree_limit)
-df_sub = pd.DataFrame({'user_query':test_texts_1, 'candidate_query':test_texts_2, 'label':test_labels, 'score':p_test.ravel()})
-df_sub.to_csv(PRE_DATA_FILE + str(best_ntree_limit), 
-        index=False, columns=['user_query', 'candidate_query', 'label', 'score'], encoding='utf-8')
+df_sub = pd.DataFrame(
+    {'user_query': test_texts_1, 'candidate_query': test_texts_2, 'label': test_labels, 'score': p_test.ravel()})
+df_sub.to_csv(PRE_DATA_FILE + str(best_ntree_limit),
+              index=False, columns=['user_query', 'candidate_query', 'label', 'score'], encoding='utf-8')
 
 best_ntree_limit = 598
 p_test = bst.predict(xgb.DMatrix(x_test), ntree_limit=best_ntree_limit)
-df_sub = pd.DataFrame({'user_query':test_texts_1, 'candidate_query':test_texts_2, 'label':test_labels, 'score':p_test.ravel()})
-df_sub.to_csv(PRE_DATA_FILE + str(best_ntree_limit), 
-        index=False, columns=['user_query', 'candidate_query', 'label', 'score'], encoding='utf-8')
+df_sub = pd.DataFrame(
+    {'user_query': test_texts_1, 'candidate_query': test_texts_2, 'label': test_labels, 'score': p_test.ravel()})
+df_sub.to_csv(PRE_DATA_FILE + str(best_ntree_limit),
+              index=False, columns=['user_query', 'candidate_query', 'label', 'score'], encoding='utf-8')
 
 best_ntree_limit = 599
 p_test = bst.predict(xgb.DMatrix(x_test), ntree_limit=best_ntree_limit)
-df_sub = pd.DataFrame({'user_query':test_texts_1, 'candidate_query':test_texts_2, 'label':test_labels, 'score':p_test.ravel()})
-df_sub.to_csv(PRE_DATA_FILE + str(best_ntree_limit), 
-        index=False, columns=['user_query', 'candidate_query', 'label', 'score'], encoding='utf-8')
-
+df_sub = pd.DataFrame(
+    {'user_query': test_texts_1, 'candidate_query': test_texts_2, 'label': test_labels, 'score': p_test.ravel()})
+df_sub.to_csv(PRE_DATA_FILE + str(best_ntree_limit),
+              index=False, columns=['user_query', 'candidate_query', 'label', 'score'], encoding='utf-8')
 
 p_test = bst.predict(xgb.DMatrix(x_test))
-df_sub = pd.DataFrame({'user_query':test_texts_1, 'candidate_query':test_texts_2, 'label':test_labels, 'score':p_test.ravel()})
-df_sub.to_csv(PRE_DATA_FILE + "nolimit", 
-        index=False, columns=['user_query', 'candidate_query', 'label', 'score'], encoding='utf-8')
-
-
-
+df_sub = pd.DataFrame(
+    {'user_query': test_texts_1, 'candidate_query': test_texts_2, 'label': test_labels, 'score': p_test.ravel()})
+df_sub.to_csv(PRE_DATA_FILE + "nolimit",
+              index=False, columns=['user_query', 'candidate_query', 'label', 'score'], encoding='utf-8')

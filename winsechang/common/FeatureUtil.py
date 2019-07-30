@@ -1,4 +1,4 @@
-#/usr/bin/python
+# /usr/bin/python
 # -*- coding:utf-8 -*-
 
 """
@@ -8,11 +8,11 @@
 
 import sys
 import pandas as pd
-from commen_function import *
+from common_function import *
 
 
 class FeatureUtil:
-    def __init__(self, q1_vec, q2_vec, stopword = {}):
+    def __init__(self, q1_vec, q2_vec, stopword={}):
         self.__stop_word = stopword
         self.__q1 = q1_vec
         self.__q2 = q2_vec
@@ -23,41 +23,40 @@ class FeatureUtil:
         self.__c1_ust = remove_stopword(set(self.__c1), stopword)
         self.__c2_ust = remove_stopword(set(self.__c2), stopword)
 
-
-    @property 
+    @property
     def jaccard(self):
         coml = self.common_words
         unil = self.union_words if self.union_words != 0 else 1
-        return (coml / unil)
-    
-    @property 
+        return coml / unil
+
+    @property
     def common_words(self):
         return len(set(self.__q1).intersection(set(self.__q2)))
 
-    @property 
+    @property
     def union_words(self):
-        return len(set(self.__q1).union(self.__q2)) 
-    
-    @property 
+        return len(set(self.__q1).union(self.__q2))
+
+    @property
     def total_unique_words(self):
         return len(set(self.__q1).union(self.__q2))
-    
-    @property 
+
+    @property
     def total_unq_words_stop(self):
         return len([x for x in set(self.__q1).union(self.__q2) if x not in self.__stop_word])
-    
-    @property 
+
+    @property
     def wc_diff(self):
         return abs(len(self.__q1) - len(self.__q2))
-    
-    @property 
+
+    @property
     def wc_diff_unique(self):
         return abs(len(set(self.__q1)) - len(set(self.__q2)))
-     
-    @property 
+
+    @property
     def wc_diff_unique_stop(self):
         return abs(len(self.__q1_ust) - len(self.__q2_ust))
- 
+
     def calc_ratio(self, l1, l2):
         if l2 == 0:
             return np.nan
@@ -65,50 +64,50 @@ class FeatureUtil:
             return l2 / l1
         else:
             return l1 / l2
- 
-    @property 
+
+    @property
     def wc_ratio(self):
-        l1 = len(self.__q1)*1.0 
+        l1 = len(self.__q1) * 1.0
         l2 = len(self.__q2)
         return self.calc_ratio(l1, l2)
-       
-    @property 
+
+    @property
     def wc_ratio_unique(self):
         l1 = len(set(self.__q1)) * 1.0
         l2 = len(set(self.__q2))
         return self.calc_ratio(l1, l2)
-   
-    @property 
+
+    @property
     def wc_ratio_unique_stop(self):
-        l1 = len(self.__q1_ust)*1.0 
+        l1 = len(self.__q1_ust) * 1.0
         l2 = len(self.__q2_ust)
         return self.calc_ratio(l1, l2)
-    
-    @property 
+
+    @property
     def same_start_word(self):
         return int(self.__q1[0] == self.__q2[0])
-    
-    @property 
+
+    @property
     def char_diff(self):
         return abs(len(self.__c1) - len(self.__c2))
-    
-    @property 
+
+    @property
     def char_ratio(self):
-        l1 = len(self.__c1) 
+        l1 = len(self.__c1)
         l2 = len(self.__c2)
         return self.calc_ratio(l1, l2)
-    
-    @property 
+
+    @property
     def char_diff_unique_stop(self):
         return abs(len(self.__c1_ust) - len(self.__c2_ust))
-    
-    @property 
+
+    @property
     def get_weight(self, count, eps=10000, min_count=2):
         if count < min_count:
             return 0.0
         else:
             return 1.0 / (count + eps)
-    
+
     @property  # TODO
     def tfidf_word_match_share_stops(self, weights=None):
         q1words = {}
@@ -122,14 +121,15 @@ class FeatureUtil:
         if len(q1words) == 0 or len(q2words) == 0:
             # The computer-generated chaff includes a few questions that are nothing but stopwords
             return 0
-        
-        shared_weights = [weights.get(w, 0) for w in q1words.keys() if w in q2words] + [weights.get(w, 0) for w in q2words.keys() if w in q1words]
+
+        shared_weights = [weights.get(w, 0) for w in q1words.keys() if w in q2words] + [weights.get(w, 0) for w in
+                                                                                        q2words.keys() if w in q1words]
         total_weights = [weights.get(w, 0) for w in q1words] + [weights.get(w, 0) for w in q2words]
-        
+
         R = np.sum(shared_weights) / np.sum(total_weights)
         return R
-    
-    @property 
+
+    @property
     def tfidf_word_match_share(self, weights=None):
         q1words = {}
         q2words = {}
@@ -140,10 +140,11 @@ class FeatureUtil:
         if len(q1words) == 0 or len(q2words) == 0:
             # The computer-generated chaff includes a few questions that are nothing but stopwords
             return 0
-        
-        shared_weights = [weights.get(w, 0) for w in q1words.keys() if w in q2words] + [weights.get(w, 0) for w in q2words.keys() if w in q1words]
+
+        shared_weights = [weights.get(w, 0) for w in q1words.keys() if w in q2words] + [weights.get(w, 0) for w in
+                                                                                        q2words.keys() if w in q1words]
         total_weights = [weights.get(w, 0) for w in q1words] + [weights.get(w, 0) for w in q2words]
-        
+
         R = np.sum(shared_weights) / np.sum(total_weights)
         return R
 
@@ -153,26 +154,23 @@ if __name__ == "__main__":
     q2 = "什么|原因|导致|天空|是|蓝色|的"
     FU = FeatureUtil(q1.split("|"), q2.split("|"), {"的"})
 
-    print ("q1 is : " + q1)
-    print ("q2 is : " + q2)
-    print ("jaccard distance: " + str(FU.jaccard))
-    print ("common_words: " + str(FU.common_words))
-    print ("total_unique_words: " + str(FU.total_unique_words))
-    print ("total_unq_words_stop: " + str(FU.total_unq_words_stop))
-    print ("wc_diff:" + str(FU.wc_diff))
-    print ("wc_diff_unique:" + str(FU.wc_diff_unique))
-    print ("wc_diff_unique_stop:" + str(FU.wc_diff_unique_stop))
-    print ("wc_ratio:" + str(FU.wc_ratio))
-    print ("wc_ratio_unique:" + str(FU.wc_ratio_unique))
-    print ("wc_ratio_unique_stop:" + str(FU.wc_ratio_unique_stop))
-    print ("same_start_word:" + str(FU.same_start_word))
-    print ("char_diff:" + str(FU.char_diff))
-    print ("char_ratio:" + str(FU.char_ratio))
-    print ("char_diff_unique_stop:" + str(FU.char_diff_unique_stop))
-    #print (":" + str(FU.))
-
-   
-    
+    print("q1 is : " + q1)
+    print("q2 is : " + q2)
+    print("jaccard distance: " + str(FU.jaccard))
+    print("common_words: " + str(FU.common_words))
+    print("total_unique_words: " + str(FU.total_unique_words))
+    print("total_unq_words_stop: " + str(FU.total_unq_words_stop))
+    print("wc_diff:" + str(FU.wc_diff))
+    print("wc_diff_unique:" + str(FU.wc_diff_unique))
+    print("wc_diff_unique_stop:" + str(FU.wc_diff_unique_stop))
+    print("wc_ratio:" + str(FU.wc_ratio))
+    print("wc_ratio_unique:" + str(FU.wc_ratio_unique))
+    print("wc_ratio_unique_stop:" + str(FU.wc_ratio_unique_stop))
+    print("same_start_word:" + str(FU.same_start_word))
+    print("char_diff:" + str(FU.char_diff))
+    print("char_ratio:" + str(FU.char_ratio))
+    print("char_diff_unique_stop:" + str(FU.char_diff_unique_stop))
+    # print (":" + str(FU.))
 
 """
 def wc_ratio(row):

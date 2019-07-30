@@ -4,7 +4,7 @@ from sklearn import metrics
 
 model_name = sys.argv[1]
 thre = float(sys.argv[2])
-f = pd.read_csv(model_name, sep = ',')
+f = pd.read_csv(model_name, sep=',')
 
 f.loc[f.score > thre, 'pred'] = 1
 f.loc[f.score <= thre, 'pred'] = 0

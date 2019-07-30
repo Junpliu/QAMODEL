@@ -1,10 +1,10 @@
-#/usr/bin/python
+# /usr/bin/python
 # -*- coding:utf-8 -*-
-'''
+"""
 Author: changjingdong
 Date: 20190614
 Desc: xgboost model to predict similar questions
-'''
+"""
 import sys
 import codecs
 from collections import defaultdict
@@ -18,10 +18,11 @@ from scipy.spatial.distance import cosine, cityblock, jaccard, canberra, euclide
 import pickle as pk
 import os
 from data_helper import *
-sys.path.insert(0, '../common')
-from commen_function import *
 
-os.environ['CUDA_VISIBLE_DEVICES']='2'
+sys.path.insert(0, '../common')
+from common_function import *
+
+os.environ['CUDA_VISIBLE_DEVICES'] = '2'
 
 TRAIN_DATA_FILE = 'data/partition/train.txt'
 VAL_DATA_FILE = 'data/partition/dev.txt'
@@ -32,8 +33,8 @@ FEATURE_MAP = 'data/feature_map'
 
 MODEL_PATH = 'model/model'
 
-EMBEDDING_DIM = 200 
-EMBEDDING_FILE = '../../wdic/word2vec.dict' 
+EMBEDDING_DIM = 200
+EMBEDDING_FILE = '../../wdic/word2vec.dict'
 STOPWORD_FILE = '../../wdic/stopwords.txt'
 
 #################################################################
@@ -54,9 +55,9 @@ val_texts_1, val_texts_2, val_labels = read_data(VAL_DATA_FILE)
 test_texts_1, test_texts_2, test_labels = read_data(TEST_DATA_FILE)
 print("Finish reading training samples !")
 
-train_orig =  pd.DataFrame({"question1": train_texts_1, "question2": train_texts_2})
-val_orig =  pd.DataFrame({"question1": val_texts_1, "question2": val_texts_2})
-test_orig =  pd.DataFrame({"question1": test_texts_1, "question2": test_texts_2})
+train_orig = pd.DataFrame({"question1": train_texts_1, "question2": train_texts_2})
+val_orig = pd.DataFrame({"question1": val_texts_1, "question2": val_texts_2})
+test_orig = pd.DataFrame({"question1": test_texts_1, "question2": test_texts_2})
 
 ############### save words counts #########################################
 total_words = []
@@ -69,7 +70,7 @@ for i in range(ques.shape[0]):
 counts = Counter(total_words)
 r = open(WORD_COUNTS, 'w')
 for _word, _count in counts.items():
-    r.write("%s\t%d\n"%(_word, _count))
+    r.write("%s\t%d\n" % (_word, _count))
 r.close()
 
 ################ basic features  ########################################
@@ -97,24 +98,24 @@ ceate_feature_map(FEATURE_MAP, features)
 x_train.columns = [str(i) for i in range(x_train.shape[1])]
 x_valid.columns = [str(i) for i in range(x_valid.shape[1])]
 x_test.columns = [str(i) for i in range(x_test.shape[1])]
-#print (x_train.columns)
-#print (x_train.columns.values)
+# print (x_train.columns)
+# print (x_train.columns.values)
 
 ############## train models ################################################
 params = {}
 params['objective'] = 'binary:logistic'
 params['eval_metric'] = ['error', 'logloss']
-#params['eval_metric'] = ['auc', 'ams@0']
+# params['eval_metric'] = ['auc', 'ams@0']
 params['eta'] = 0.08
 params['max_depth'] = 6
 
-#params['gpu_id'] = 2
-#params['max_bin'] = 16
-#params['tree_method'] = 'gpu_hist'
+# params['gpu_id'] = 2
+# params['max_bin'] = 16
+# params['tree_method'] = 'gpu_hist'
 
 d_train = xgb.DMatrix(x_train, label=labels)
 d_valid = xgb.DMatrix(x_valid, label=val_labels)
-#print (d_train.feature_names)
+# print (d_train.feature_names)
 
 watchlist = [(d_train, 'train'), (d_valid, 'valid')]
 
@@ -124,14 +125,17 @@ bst.dump_model(MODEL_PATH + '.dump')
 
 ## make the submission
 p_test = bst.predict(xgb.DMatrix(x_test))
-df_sub = pd.DataFrame({'user_query':test_texts_1, 'candidate_query':test_texts_2, 'label':test_labels, 'score':p_test.ravel()})
+df_sub = pd.DataFrame(
+    {'user_query': test_texts_1, 'candidate_query': test_texts_2, 'label': test_labels, 'score': p_test.ravel()})
 df_sub.to_csv(PRE_DATA_FILE, index=False, columns=['user_query', 'candidate_query', 'label', 'score'], encoding='utf-8')
 
 ## make the submission for best
 p_test = bst.predict(xgb.DMatrix(x_test), ntree_limit=bst.best_ntree_limit)
-df_sub = pd.DataFrame({'user_query':test_texts_1, 'candidate_query':test_texts_2, 'label':test_labels, 'score':p_test.ravel()})
-df_sub.to_csv(PRE_DATA_FILE + "_best", index=False, columns=['user_query', 'candidate_query', 'label', 'score'], encoding='utf-8')
+df_sub = pd.DataFrame(
+    {'user_query': test_texts_1, 'candidate_query': test_texts_2, 'label': test_labels, 'score': p_test.ravel()})
+df_sub.to_csv(PRE_DATA_FILE + "_best", index=False, columns=['user_query', 'candidate_query', 'label', 'score'],
+              encoding='utf-8')
 
-print ("best_iteration:", bst.best_iteration)
-print ("ntree_limit=bst.best_ntree_limit:", bst.best_ntree_limit)
-print ("best_score", bst.best_score)
+print("best_iteration:", bst.best_iteration)
+print("ntree_limit=bst.best_ntree_limit:", bst.best_ntree_limit)
+print("best_score", bst.best_score)
