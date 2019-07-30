@@ -73,7 +73,7 @@ def run_eval(config, eval_model, eval_sess, eval_data, model_dir, ckpt_name, sum
     summary_writer.add_summary(eval_summary1, global_step=global_step)
 
     best_eval_loss = getattr(config, "best_eval_loss")
-    if eval_loss < best_eval_loss:
+    if save_on_best and eval_loss < best_eval_loss:
         setattr(config, "best_eval_loss", eval_loss)
         loaded_eval_model.saver.save(
             eval_sess,
@@ -143,7 +143,7 @@ def test(config, model_creator):
     # eval_sess = tf.Session(config=session_config, graph=eval_model.graph)
     # run_test(config, eval_model, eval_sess, config.dev_file, model_dir)
 
-    logger.info("Start inferuating saved best model on test-set.")
+    logger.info("Start evaluating saved best model on test-set.")
     infer_model = model_helper.create_model(model_creator, config, mode="infer")
     session_config = utils.get_config_proto()
     infer_sess = tf.Session(config=session_config, graph=infer_model.graph)

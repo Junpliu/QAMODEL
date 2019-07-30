@@ -8,13 +8,13 @@ Date: 2019-07-08
 """
 import random
 import logging
-import collections
+import os
 
 import numpy as np
 import sklearn
 
-# from . import vocab_utils
-import vocab_utils
+from . import vocab_utils
+# import vocab_utils
 
 logger = logging.getLogger(__name__)
 
@@ -32,14 +32,13 @@ def read_file(filename):
 
 def split_data(raw_file, train_file, dev_file, test_file, dev_ratio=0.1, test_ratio=0.1):
     """split data into train/dev/test"""
+    # TODO: shuffled data
     d = {}
     for line in read_file(raw_file):
         query, question, label = line.strip().split("\t")
         if query not in d:
             d[query] = []
-        else:
-            d[query].append("{}\t{}".format(question, label))
-    # TODO: shuffled data
+        d[query].append("{}\t{}".format(question, label))
     test = list(d.items())
     random.shuffle(test)
     d = dict(test)
@@ -48,35 +47,20 @@ def split_data(raw_file, train_file, dev_file, test_file, dev_ratio=0.1, test_ra
         for i in v:
             line = "{}\t{}\n".format(k, i)
             lines.append(line)
+
     total = len(lines)
     dev_num = int(total * dev_ratio)
     test_num = int(total * test_ratio)
     train = lines[:-(test_num + dev_num)]
     dev = lines[-(test_num + dev_num):-test_num]
     test = lines[-test_num:]
-    print("# train\tset\t%d" % len(train))
-    print("# dev\tset\t%d" % len(dev))
-    print("# test\tset\t%d" % len(test))
+    print("# total\t%d" % total)
+    print("# train\t%d" % len(train))
+    print("# dev\t%d" % len(dev))
+    print("# test\t%d" % len(test))
     open(train_file, "w", encoding="utf-8").writelines(train)
     open(dev_file, "w", encoding="utf-8").writelines(dev)
     open(test_file, "w", encoding="utf-8").writelines(test)
-
-
-# raw_data_file = "../data/qq_simscore/merge_20190508.txt"
-# train_data_file = "../data/qq_simscore/train.txt"
-# dev_data_file = "../data/qq_simscore/dev.txt"
-# test_data_file = "../data/qq_simscore/test.txt"
-# split_data(raw_data_file, train_data_file, dev_data_file, test_data_file)
-
-
-########################################  create vocabulary  ########################################
-# create word/char level vocabulary based on texts in train data.
-
-# train_data_file = "../data/qq_simscore/train.txt"
-# word_index_file = "../data/qq_simscore/word.txt"
-# char_index_file = "../data/qq_simscore/char.txt"
-# vocab_utils.create_vocab(train_data_file, word_index_file, split="|", char_level=False)
-# vocab_utils.create_vocab(train_data_file, char_index_file, split="|", char_level=True)
 
 
 #######################################  load data & batch iterator  ########################################
@@ -208,13 +192,13 @@ def batch_iterator(data, batch_size, shuffle=True, mode="train"):
     return
 
 
-def test_batch_iter():
+def test_batch_iter(toy_file, word_file, char_file):
     lines = ["360|系统|怎么|更换|默认|桌面	努比亚|怎么|设置|360|桌面|为|默认	0\n",
              "电动车|驾驶证	2018|电动车|要|驾驶证|吗	0\n",
              "二战|时期|哪个|国家|牺牲|的|人|最多	二战|时期|有没有	0\n"]
-    open("../data/qq_simscore/toy.txt", "w", encoding="utf-8").writelines(lines)
+    open(toy_file, "w", encoding="utf-8").writelines(lines)
 
-    d = load_data("../data/qq_simscore/toy.txt", "../data/qq_simscore/word.txt", "../data/qq_simscore/char.txt")
+    d = load_data(toy_file, word_file, char_file)
     it = batch_iterator(d, 2)
     i = 0
     while True:
@@ -225,9 +209,6 @@ def test_batch_iter():
             i += 1
         except StopIteration:
             break
-
-
-# test_batch_iter()
 
 
 ########################################  triplet data  ########################################
@@ -247,6 +228,12 @@ def data_to_triplet(in_path, out_path, for_train):
     07|年|奔驰gl|450|保养|归零|方法	奔驰gl|450|保养|归零|方法   奔驰gl|450|空调滤芯|在|哪里
 
     """
+    out_path_dir = os.path.dirname(out_path)
+    if not os.path.exists(out_path_dir):
+        os.makedirs(out_path_dir)
+    for_train_dir = os.path.dirname(for_train)
+    if not os.path.exists(for_train_dir):
+        os.makedirs(for_train_dir)
 
     f = open(in_path, "r", encoding="utf-8")
     fw = open(out_path, "w", encoding="utf-8")
@@ -301,7 +288,7 @@ def data_to_triplet(in_path, out_path, for_train):
             count0 += 1
     fw.close()
     f2.close()
-
+    print(in_path)
     print("# qq pair total %d" % (c1 + c0))
     print("# qq pair positive %d" % c1)
     print("# qq pair negative %d" % c0)
@@ -313,112 +300,6 @@ def data_to_triplet(in_path, out_path, for_train):
     print("# (query,question-, 0) %d" % count_n)
     print("# (query,question,label) %d" % (count_n + count_p))
     print("\n")
-
-
-# raw_data_file = "../data/qq_simscore/merge_20190508.txt"
-# triplet_data_file = "../data/qq_simscore/triplet/triplet.txt"
-# for_train_data_file = "../data/qq_simscore/for_train/all.txt"
-# data_to_triplet(raw_data_file, triplet_data_file, for_train_data_file)
-#
-train_data_file = "../data/qq_simscore/train.txt"
-train_triplet_data_file = "../data/qq_simscore/triplet/train.txt"
-for_train_train = "../data/qq_simscore/for_train/train.txt"
-data_to_triplet(train_data_file, train_triplet_data_file, for_train_train)
-
-dev_data_file = "../data/qq_simscore/dev.txt"
-dev_triplet_data_file = "../data/qq_simscore/triplet/dev.txt"
-for_train_dev = "../data/qq_simscore/for_train/dev.txt"
-data_to_triplet(dev_data_file, dev_triplet_data_file, for_train_dev)
-
-test_data_file = "../data/qq_simscore/test.txt"
-test_triplet_data_file = "../data/qq_simscore/triplet/test.txt"
-for_train_test = "../data/qq_simscore/for_train/test.txt"
-data_to_triplet(test_data_file, test_triplet_data_file, for_train_test)
-
-"""
-# qq pair total 88686
-# qq pair positive 31252
-# qq pair negative 57434
-# query total 23351
-# query has positive question 15039
-# query dont have positive question 8312
-# (query,question+,question-) 38362
-# (query,question+, 1) 21291
-# (query,question-, 0) 26171
-# (query,question,label) 47462
-
-
-# qq pair total 11085
-# qq pair positive 3875
-# qq pair negative 7210
-# query total 2917
-# query has positive question 1857
-# query dont have positive question 1060
-# (query,question+,question-) 4803
-# (query,question+, 1) 2683
-# (query,question-, 0) 3218
-# (query,question,label) 5901
-
-
-# qq pair total 11085
-# qq pair positive 4063
-# qq pair negative 7022
-# query total 2931
-# query has positive question 1919
-# query dont have positive question 1012
-# (query,question+,question-) 4773
-# (query,question+, 1) 2714
-# (query,question-, 0) 3239
-# (query,question,label) 5953
-"""
-
-# def split_triplet_data(raw_file, train_file, dev_file, test_file, infer_file, dev_ratio=0.1, test_ratio=0.1):
-#     """split data into train/dev/test"""
-#     d = {}
-#     for line in read_file(raw_file):
-#         query, q1, q2 = line.strip().split("\t")
-#         if query not in d:
-#             d[query] = []
-#         else:
-#             d[query].append("{}\t{}".format(q1, q2))
-#     # TODO: shuffled data
-#     test = list(d.items())
-#     random.shuffle(test)
-#     d = dict(test)
-#     lines = []
-#     for k, v in d.items():
-#         for i in v:
-#             line = "{}\t{}\n".format(k, i)
-#             lines.append(line)
-#     total = len(lines)
-#     dev_num = int(total * dev_ratio)
-#     test_num = int(total * test_ratio)
-#     train = lines[:-(test_num + dev_num)]
-#     dev = lines[-(test_num + dev_num):-test_num]
-#     test = lines[-test_num:]
-#
-#     infer = set()
-#     for line in test:
-#         q, q1, q2 = line.strip().split("\t")
-#         infer.add("{}\t{}\t{}\n".format(q, q1, "1"))
-#         infer.add("{}\t{}\t{}\n".format(q, q2, "0"))
-#     infer = list(infer)
-#
-#     print("# train\tset\t%d" % len(train))
-#     print("# dev\tset\t%d" % len(dev))
-#     print("# test\tset\t%d" % len(test))
-#     open(train_file, "w", encoding="utf-8").writelines(train)
-#     open(dev_file, "w", encoding="utf-8").writelines(dev)
-#     open(test_file, "w", encoding="utf-8").writelines(test)
-#     open(infer_file, "w", encoding="utf-8").writelines(infer)
-
-
-# raw_data_file = "../data/qq_simscore/triplet/triplet.txt"
-# train_data_file = "../data/qq_simscore/triplet/train.txt"
-# dev_data_file = "../data/qq_simscore/triplet/dev.txt"
-# test_data_file = "../data/qq_simscore/triplet/test.txt"
-# infer_data_file = "../data/qq_simscore/triplet/infer.txt"
-# split_triplet_data(raw_data_file, train_data_file, dev_data_file, test_data_file, infer_data_file)
 
 
 # class Data(collections.namedtuple("Data", ("words1", "words_len1", "chars1", "chars_len1",
@@ -577,31 +458,39 @@ def triplet_batch_iterator(data, batch_size, shuffle=True, mode="train"):
     return
 
 
-### create vocabulary
-# train_data_file = "../data/qq_simscore/triplet/train.txt"
-# infer_data_file = "../data/qq_simscore/triplet/infer.txt"
-# word_index_file = "../data/qq_simscore/triplet/word.txt"
-# char_index_file = "../data/qq_simscore/triplet/char.txt"
-# vocab_utils.create_vocab_from_triplet_data(train_data_file, word_index_file, split="|", char_level=False)
-# vocab_utils.create_vocab_from_triplet_data(train_data_file, char_index_file, split="|", char_level=True)
-#
-#
-# train_data_file = "../data/qq_simscore/for_train/train.txt"
-# word_index_file = "../data/qq_simscore/for_train/word.txt"
-# char_index_file = "../data/qq_simscore/for_train/char.txt"
-# vocab_utils.create_vocab_from_triplet_data(train_data_file, word_index_file, split="|", char_level=False)
-# vocab_utils.create_vocab_from_triplet_data(train_data_file, char_index_file, split="|", char_level=True)
+def test_triplet_batch_iter(toy_file, word_file, char_file):
+    print("# test triplet_batch_iterator(), mode = train")
+    lines = ["称象|有|什么|方法	现代|称象|的|方法	曹|什么|称象\n",
+             "称象|有|什么|方法	现代|称象|的|方法	用|称象|造句\n",
+             "称象|有|什么|方法	现代|称象|的|方法	称象|小|古文\n"]
+    open(toy_file, "w", encoding="utf-8").writelines(lines)
 
+    d = load_triplet_data(toy_file, word_file, char_file, mode="train")
+    it = triplet_batch_iterator(d, 2, mode="train")
+    i = 0
+    while True:
+        try:
+            a = next(it)
+            print("[batch %d] " % i)
+            print(a)
+            i += 1
+        except StopIteration:
+            break
 
-# train_data = load_triplet_data(train_data_file, word_index_file, char_index_file, mode="train")
-# train_iter = triplet_batch_iterator(train_data, 2, mode="train")
-# while True:
-#     b = next(train_iter)
-#     print(b)
+    print("# test triplet_batch_iterator(), mode = infer")
+    lines = ["广东|汤|河粉|什么|配料	广东|卤鹅|的|做法|及|配料	0\n",
+             "广东|汤|河粉|什么|配料	广东|窑鸡|的|做法|及|配料	0\n",
+             "广东|汤|河粉|什么|配料	广东|河粉|的|制作|方法	1\n"]
+    open(toy_file, "w", encoding="utf-8").writelines(lines)
 
-# infer_data = load_triplet_data(infer_data_file, word_index_file, char_index_file, mode="infer")
-# print(len(infer_data))
-# infer_iter = triplet_batch_iterator(infer_data, 2, mode="infer")
-# while True:
-#     b = next(infer_iter)
-#     print(b[-1])
+    d = load_triplet_data(toy_file, word_file, char_file, mode="infer")
+    it = triplet_batch_iterator(d, 2, mode="infer")
+    i = 0
+    while True:
+        try:
+            a = next(it)
+            print("[batch %d] " % i)
+            print(a)
+            i += 1
+        except StopIteration:
+            break
