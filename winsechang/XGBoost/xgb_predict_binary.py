@@ -4,26 +4,14 @@
 Author: changjingdong
 Date: 20190614
 Desc: xgboost model to predict similar questions
+
+Update: aitingliu, 20190731
 """
-# import sys
-#
-# import xgboost as xgb
-# from xgboost import plot_importance
-#
-# import data_helper
-# from common import common_function
-#
-# x_test = xgb.DMatrix('test.buffer_1000')
-#
-# bst = xgb.Booster({'nthread': 1})  # init model
-# bst.load_model('model/model')  # load data
-#
-# # p_test = bst.predict(x_test)
-# #
-# # for x in p_test:
-# #    print  (x)
-# #
-# ##
-#
-# plot_importance(bst)
-# plt.show()
+import xgboost as xgb
+import matplotlib.pyplot as plt
+plt.switch_backend('agg')
+
+bst = xgb.Booster(model_file="./model/model")  # init model
+fig, ax = plt.subplots()
+xgb.plot_importance(bst, ax=ax, max_num_features=50)
+plt.savefig("fig/feature50.png")

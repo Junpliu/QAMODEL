@@ -173,18 +173,12 @@ def batch_iterator(data, batch_size, shuffle=True, mode="train"):
         A batch iterator for date set.
     """
     data_size = len(data[-1])
-    if shuffle:
-        if mode == "infer":
-            words1, words2, words_len1, words_len2, chars1, chars2, chars_len1, chars_len2 = data
-            data = \
-                sklearn.utils.shuffle(
-                    words1, words2, words_len1, words_len2, chars1, chars2, chars_len1, chars_len2)
-        else:
-            words1, words2, words_len1, words_len2, chars1, chars2, chars_len1, chars_len2, labels = data
-            data = \
-                sklearn.utils.shuffle(
-                    words1, words2, words_len1, words_len2, chars1, chars2, chars_len1, chars_len2, labels)
-    num_batches_per_epoch = int((data_size - 1) / batch_size)
+    if shuffle and mode == "train":
+        words1, words2, words_len1, words_len2, chars1, chars2, chars_len1, chars_len2, labels = data
+        data = \
+            sklearn.utils.shuffle(
+                words1, words2, words_len1, words_len2, chars1, chars2, chars_len1, chars_len2, labels)
+    num_batches_per_epoch = int((data_size - 1) / batch_size) + 1
     for batch_num in range(num_batches_per_epoch):
         start_index = batch_num * batch_size
         end_index = min((batch_num + 1) * batch_size, data_size)
@@ -438,19 +432,13 @@ def triplet_batch_iterator(data, batch_size, shuffle=True, mode="train"):
         A batch iterator for date set.
     """
     data_size = len(data[-1])
-    if shuffle:
-        if mode == "infer":
-            words1, words2, words_len1, words_len2, chars1, chars2, chars_len1, chars_len2, labels = data
-            data = \
-                sklearn.utils.shuffle(
-                    words1, words2, words_len1, words_len2, chars1, chars2, chars_len1, chars_len2, labels)
-        else:
-            words1, words2, words3, words_len1, words_len2, words_len3, chars1, chars2, chars3, chars_len1, chars_len2, chars_len3 = data
-            data = \
-                sklearn.utils.shuffle(
-                    words1, words2, words3, words_len1, words_len2, words_len3,
-                    chars1, chars2, chars3, chars_len1, chars_len2, chars_len3)
-    num_batches_per_epoch = int((data_size - 1) / batch_size)
+    if shuffle and mode == "train":
+        words1, words2, words3, words_len1, words_len2, words_len3, chars1, chars2, chars3, chars_len1, chars_len2, chars_len3 = data
+        data = \
+            sklearn.utils.shuffle(
+                words1, words2, words3, words_len1, words_len2, words_len3,
+                chars1, chars2, chars3, chars_len1, chars_len2, chars_len3)
+    num_batches_per_epoch = int((data_size - 1) / batch_size) + 1
     for batch_num in range(num_batches_per_epoch):
         start_index = batch_num * batch_size
         end_index = min((batch_num + 1) * batch_size, data_size)
