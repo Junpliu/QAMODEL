@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
-
+import os
 import sys
 import traceback
 from sklearn import metrics
@@ -43,6 +43,12 @@ def fatal(e):
 
 def FATAL(e):
     fatal(e)
+
+
+def makedir(path):
+    dir_name = os.path.dirname(path)
+    if not os.path.exists(dir_name):
+        os.makedirs(dir_name)
 
 
 ############################ conv--function #######################

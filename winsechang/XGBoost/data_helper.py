@@ -4,22 +4,23 @@
 Author: changjingdong
 Date: 20190614
 Desc: data processer for xgboost
+
+Update: aitingliu, 20190726
 """
-import sys
+import os
 import codecs
-from collections import defaultdict
-from collections import Counter
+import functools
+
 import pandas as pd
 import numpy as np
-import functools
 from scipy.stats import skew, kurtosis
 from scipy.spatial.distance import cosine, cityblock, jaccard, canberra, euclidean, minkowski, braycurtis
-import os
 
-sys.path.insert(0, '../common')
-from common_function import *
+from common.common_function import *
 
 os.environ['CUDA_VISIBLE_DEVICES'] = '2'
+
+eps = 10e-8
 
 
 def sent2vec(s, stop_words, word2vec):
@@ -27,13 +28,13 @@ def sent2vec(s, stop_words, word2vec):
     M = list_conv(list_filter(word_list, lambda x: x in word2vec), lambda x: word2vec[x])
     M = np.array(M)
     v = M.sum(axis=0)
-    return v / np.sqrt((v ** 2).sum())
+    return v / np.sqrt((v ** 2).sum() + eps)
 
 
 ## basic features
 def get_basic_feat(data, EMBEDDING_DIM, stop_words, word2vec):
-    data['len_q1'] = data.question1.apply(lambda x: len(x.replace('|', '')))
-    data['len_q2'] = data.question2.apply(lambda x: len(x.replace('|', '')))
+    data['len_q1'] = data.question1.apply(lambda x: int(len(x.replace('|', ''))))
+    data['len_q2'] = data.question2.apply(lambda x: int(len(x.replace('|', ''))))
     data['diff_len'] = data.len_q1 - data.len_q2
     data['len_char_q1'] = data.question1.apply(lambda x: len(''.join(set(x.replace('|', '')))))
     data['len_char_q2'] = data.question2.apply(lambda x: len(''.join(set(x.replace('|', '')))))
@@ -73,6 +74,7 @@ def get_basic_feat(data, EMBEDDING_DIM, stop_words, word2vec):
     for dim in range(question2_vectors.shape[1]):
         data['q2_w2v_dim%d' % dim] = question2_vectors[:, dim]
     # data.drop(['question1', 'question2'], axis=1, inplace=True)
+    # print(data.columns.values)
 
     return data
 
@@ -99,7 +101,7 @@ def jaccard(row):
     uw = set(row['question1'].split('|')).union(row['question2'].split('|'))
     if len(uw) == 0:
         uw = [1]
-    return (len(wic) / len(uw))
+    return len(wic) / len(uw)
 
 
 def common_words(row):
@@ -250,6 +252,7 @@ def build_features(data, stops, weights):
     X['total_unq_words_stop'] = data.apply(f, axis=1)  # 16
 
     X['char_ratio'] = data.apply(char_ratio, axis=1)  # 17
+    # print(X.columns.values)
 
     return X
 
@@ -266,7 +269,7 @@ def read_data(path):
 
 
 def ceate_feature_map(file_name, features):
-    with open(file_name, 'w') as outfile:
+    with open(file_name, 'w', encoding="utf-8") as outfile:
         for i, feat in enumerate(features):
             outfile.write('{0}\t{1}\tq\n'.format(i, feat))
             # feature type, use i for indicator and q for quantity

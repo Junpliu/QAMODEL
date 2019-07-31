@@ -131,17 +131,17 @@ def test(config, model_creator):
     best_metric_label = "best_eval_loss"
     model_dir = getattr(config, best_metric_label + "_dir")
 
-    # logger.info("Start evaluating saved best model on training-set.")
-    # eval_model = model_helper.create_model(model_creator, config, mode="eval")
-    # session_config = utils.get_config_proto()
-    # eval_sess = tf.Session(config=session_config, graph=eval_model.graph)
-    # run_test(config, eval_model, eval_sess, config.train_file, model_dir)
-    #
-    # logger.info("Start evaluating saved best model on dev-set.")
-    # eval_model = model_helper.create_model(model_creator, config, mode="eval")
-    # session_config = utils.get_config_proto()
-    # eval_sess = tf.Session(config=session_config, graph=eval_model.graph)
-    # run_test(config, eval_model, eval_sess, config.dev_file, model_dir)
+    logger.info("Start evaluating saved best model on training-set.")
+    eval_model = model_helper.create_model(model_creator, config, mode="eval")
+    session_config = utils.get_config_proto()
+    eval_sess = tf.Session(config=session_config, graph=eval_model.graph)
+    run_test(config, eval_model, eval_sess, config.train_file, model_dir)
+
+    logger.info("Start evaluating saved best model on dev-set.")
+    eval_model = model_helper.create_model(model_creator, config, mode="eval")
+    session_config = utils.get_config_proto()
+    eval_sess = tf.Session(config=session_config, graph=eval_model.graph)
+    run_test(config, eval_model, eval_sess, config.dev_file, model_dir)
 
     logger.info("Start evaluating saved best model on test-set.")
     infer_model = model_helper.create_model(model_creator, config, mode="infer")

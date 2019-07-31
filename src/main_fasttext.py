@@ -33,12 +33,12 @@ flags.DEFINE_string("model_dir", "/ceph/qbkg/aitingliu/qq/src/model/FastText", "
 flags.DEFINE_string("log_dir", "/ceph/qbkg/aitingliu/qq/src/logdir/FastText", "model path")
 
 # data file path
-flags.DEFINE_string("train_file", "/ceph/qbkg/aitingliu/qq/src/data/20190726/raw/train.txt", "Training data file.")
-flags.DEFINE_string("dev_file", "/ceph/qbkg/aitingliu/qq/src/data/20190726/raw/dev.txt", "Development data file.")
-flags.DEFINE_string("test_file", "/ceph/qbkg/aitingliu/qq/src/data/20190726/raw/test.txt", "Test data file.")
-flags.DEFINE_string("infer_file", "/ceph/qbkg/aitingliu/qq/src/data/20190726/raw/test.txt", "Test data file.")
-flags.DEFINE_string("word_vocab_file", "/ceph/qbkg/aitingliu/qq/src/data/20190726/raw/word.txt", "Word vocabulary file.")
-flags.DEFINE_string("char_vocab_file", "/ceph/qbkg/aitingliu/qq/src/data/20190726/raw/char.txt", "Char vocabulary file.")
+flags.DEFINE_string("train_file", "/ceph/qbkg/aitingliu/qq/data/20190726/raw/train.txt", "Training data file.")
+flags.DEFINE_string("dev_file", "/ceph/qbkg/aitingliu/qq/data/20190726/raw/dev.txt", "Development data file.")
+flags.DEFINE_string("test_file", "/ceph/qbkg/aitingliu/qq/data/20190726/raw/test.txt", "Test data file.")
+flags.DEFINE_string("infer_file", "/ceph/qbkg/aitingliu/qq/data/20190726/raw/test.txt", "Test data file.")
+flags.DEFINE_string("word_vocab_file", "/ceph/qbkg/aitingliu/qq/data/20190726/raw/word.txt", "Word vocabulary file.")
+flags.DEFINE_string("char_vocab_file", "/ceph/qbkg/aitingliu/qq/data/20190726/raw/char.txt", "Char vocabulary file.")
 flags.DEFINE_string("word_embed_file", None, "Pretrained embedding file.")
 flags.DEFINE_string("ckpt_name", "model.ckpt", "Checkpoint file name.")
 
