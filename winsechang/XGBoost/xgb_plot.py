@@ -1,0 +1,26 @@
+# /usr/bin/python
+# -*- coding:utf-8 -*-
+"""
+Author: changjingdong
+Date: 20190614
+Desc: xgboost model to predict similar questions
+
+Update: aitingliu, 20190731
+"""
+import argparse
+import xgboost as xgb
+import matplotlib.pyplot as plt
+plt.switch_backend('agg')
+
+
+parser = argparse.ArgumentParser()
+parser.register("type", "bool", lambda v: v.lower() == "true")
+parser.add_argument("--model_path", type=str, default="model/model")
+parser.add_argument("--max_num_features", type=int, default=None)
+args = parser.parse_args()
+
+
+bst = xgb.Booster(model_file=args.model_path)  # init model
+fig, ax = plt.subplots()
+xgb.plot_importance(bst, ax=ax, max_num_features=args.max_num_features)
+plt.savefig("fig/feature{}.png".format(args.max_num_features))
