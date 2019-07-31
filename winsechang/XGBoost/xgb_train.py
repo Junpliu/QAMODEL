@@ -43,6 +43,8 @@ parser.add_argument("--embedding_file", type=str, default='../../wdic/word2vec.d
 parser.add_argument("--stopword_file", type=str, default='../../wdic/stopwords.txt')
 args = parser.parse_args()
 
+common_function.print_args(args)
+
 common_function.makedir(args.pred_data_file)
 common_function.makedir(args.word_counts_file)
 common_function.makedir(args.stopword_file)
@@ -112,6 +114,10 @@ else:
     x_train = pd.concat((x_train_basic, x_train_more), axis=1)
     x_valid = pd.concat((x_valid_basic, x_valid_more), axis=1)
     x_test = pd.concat((x_test_basic, x_test_more), axis=1)
+
+x_train.drop(['question1', 'question2'], axis=1, inplace=True)
+x_valid.drop(['question1', 'question2'], axis=1, inplace=True)
+x_test.drop(['question1', 'question2'], axis=1, inplace=True)
 
 # print(x_train.columns)
 

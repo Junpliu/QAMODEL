@@ -4,7 +4,8 @@ import os
 import sys
 import traceback
 from sklearn import metrics
-
+import logging
+logger = logging.getLogger(__name__)
 
 ########################## common--funciton #######################
 def add_color(s):
@@ -49,6 +50,12 @@ def makedir(path):
     dir_name = os.path.dirname(path)
     if not os.path.exists(dir_name):
         os.makedirs(dir_name)
+
+
+def print_args(args):
+    logger.info("# Args")
+    for k, v in args.__dict__.items():
+        logger.info("  {}\t{}".format(k, str(v)))
 
 
 ############################ conv--function #######################

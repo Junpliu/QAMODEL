@@ -10,6 +10,7 @@ Update: aitingliu, 20190731
 import os
 import codecs
 import functools
+import logging
 
 import pandas as pd
 import numpy as np
@@ -17,6 +18,8 @@ from scipy.stats import skew, kurtosis
 from scipy.spatial.distance import cosine, cityblock, jaccard, canberra, euclidean, minkowski, braycurtis
 
 from common.common_function import *
+
+logger = logging.getLogger(__name__)
 
 os.environ['CUDA_VISIBLE_DEVICES'] = '2'
 
@@ -73,7 +76,7 @@ def get_basic_feat(data, EMBEDDING_DIM, stop_words, word2vec):
         data['q1_w2v_dim%d' % dim] = question1_vectors[:, dim]
     for dim in range(question2_vectors.shape[1]):
         data['q2_w2v_dim%d' % dim] = question2_vectors[:, dim]
-    data.drop(['question1', 'question2'], axis=1, inplace=True)
+    # data.drop(['question1', 'question2'], axis=1, inplace=True)
     # print(data.columns.values)
 
     return data
@@ -280,5 +283,4 @@ def model_simscore(pred_file, data):
     assert (data.question1 == df.question1).all()
     assert (data.question2 == df.question2).all()
     df.drop(["question1", "question2", "label"], axis=1, inplace=True)
-    print(df.tail())
     return df

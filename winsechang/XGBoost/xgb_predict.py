@@ -9,12 +9,18 @@ Update: aitingliu, 20190731
 """
 import os
 import argparse
+import logging
 
 import pandas as pd
 import xgboost as xgb
 
 import data_helper
 from common import common_function
+
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s %(filename)s[line:%(lineno)d] %(levelname)s - %(message)s',
+                    datefmt='%Y-%m-%d %H:%M:%S')
+logger = logging.getLogger()
 
 os.environ['CUDA_VISIBLE_DEVICES'] = '4'
 
@@ -30,6 +36,8 @@ parser.add_argument("--embedding_dim", type=int, default=200)
 parser.add_argument("--embedding_file", type=str, default='../../wdic/word2vec.dict')
 parser.add_argument("--stopword_file", type=str, default='../../wdic/stopwords.txt')
 args = parser.parse_args()
+
+common_function.print_args(args)
 
 common_function.makedir(args.pred_data_file)
 
@@ -64,6 +72,9 @@ if args.use_scwlstm:
     x_test = pd.concat([x_test_basic, x_test_more, x_test_sim], axis=1)
 else:
     x_test = pd.concat((x_test_basic, x_test_more), axis=1)
+
+x_test.drop(['question1', 'question2'], axis=1, inplace=True)
+
 x_test.columns = [str(i) for i in range(x_test.shape[1])]
 print("x_test shape : ", x_test.shape)
 
