@@ -4,14 +4,11 @@
 Date: 2019-07-11
 Author: aitingliu
 """
-import os
-import random
 import logging
 
 import tensorflow as tf
-import numpy as np
 
-from utils import vocab_utils
+from utils import misc_utils
 import train_triplet
 import inference
 from models import APLSTMT
@@ -29,8 +26,8 @@ flags = tf.flags
 FLAGS = flags.FLAGS
 
 # save model path
-flags.DEFINE_string("model_dir", "/ceph/qbkg/aitingliu/qq/src/model/APLSTMT", "model path")
-flags.DEFINE_string("log_dir", "/ceph/qbkg/aitingliu/qq/src/logdir/APLSTMT", "model path")
+flags.DEFINE_string("model_dir", "/ceph/qbkg/aitingliu/qq/src/model/APLSTMT/", "model path")
+flags.DEFINE_string("log_dir", "/ceph/qbkg/aitingliu/qq/src/logdir/APLSTMT/", "logdir path")
 
 # data file path
 flags.DEFINE_string("train_file", "/ceph/qbkg/aitingliu/qq/data/20190726/triplet/train.txt", "Training data file.")
@@ -94,72 +91,9 @@ flags.DEFINE_boolean("infer", False, "infer mode")
 flags.DEFINE_boolean("test", True, "test mode")
 
 
-def update_config(config):
-    # Vocab
-    vocab_utils.create_vocab(config.train_file, config.word_vocab_file, split="|", char_level=False)
-    vocab_utils.create_vocab(config.train_file, config.char_vocab_file, split="|", char_level=True)
-    word_vocab, word_vocab_size = vocab_utils.load_vocab(config.word_vocab_file)
-    char_vocab, char_vocab_size = vocab_utils.load_vocab(config.char_vocab_file)
-    logger.info("# Updating config.word_vocab_size: {} -> {}".format(str(config.word_vocab_size), str(word_vocab_size)))
-    logger.info("# Updating config.char_vocab_size: {} -> {}".format(str(config.char_vocab_size), str(char_vocab_size)))
-    config.word_vocab_size = word_vocab_size
-    config.char_vocab_size = char_vocab_size
-
-    # Pretrained Embeddings
-    if config.word_embed_file:
-        embed_dict, word_embed_size = vocab_utils.load_embed_txt(config.word_embed_file)
-        logger.info("# Updating config.embed_size: {} -> {}".format(str(config.word_embed_size), str(word_embed_size)))
-        config.word_embed_size = word_embed_size
-
-    # Model output directory
-    model_dir = config.model_dir
-    if model_dir and not os.path.exists(model_dir):
-        logger.info("# Creating model directory %s ..." % model_dir)
-        os.makedirs(model_dir)
-
-    # Log output directory
-    log_dir = config.log_dir
-    if log_dir and not os.path.exists(log_dir):
-        logger.info("# Creating log directory %s ..." % log_dir)
-        os.makedirs(log_dir)
-
-    # Evaluation
-    # config.best_accuracy = 0.0
-    # best_accuracy_dir = os.path.join(config.model_dir, "best_accuracy")
-    # setattr(config, "best_accuracy_dir", best_accuracy_dir)
-    # if best_accuracy_dir and not os.path.exists(best_accuracy_dir):
-    #     os.makedirs(best_accuracy_dir)
-    #
-    # config.best_f1 = 0.0
-    # best_f1_dir = os.path.join(config.model_dir, "best_f1")
-    # setattr(config, "best_f1_dir", best_f1_dir)
-    # if best_f1_dir and not os.path.exists(best_f1_dir):
-    #     os.makedirs(best_f1_dir)
-
-    config.best_eval_loss = 1000.0
-    best_eval_loss_dir = os.path.join(config.model_dir, "best_eval_loss")
-    setattr(config, "best_eval_loss_dir", best_eval_loss_dir)
-    if best_eval_loss_dir and not os.path.exists(best_eval_loss_dir):
-        os.makedirs(best_eval_loss_dir)
-
-    # print configuration
-    logger.info("# Hparams")
-    # for arg in vars(config):
-    #     logger.info("  {}\t{}".format(arg, getattr(config, arg)))
-    for arg, value in FLAGS.__flags.items():
-        logger.info("  {}\t{}".format(arg, str(value.value)))
-
-
 def main(unused):
 
-    update_config(FLAGS)
-
-    # Random
-    random_seed = FLAGS.random_seed
-    if random_seed is not None and random_seed > 0:
-        logger.info("# Set random seed to %d" % random_seed)
-        random.seed(random_seed)
-        np.random.seed(random_seed)
+    misc_utils.update_config(FLAGS)
 
     model_creator = APLSTMT.APLSTMT
 

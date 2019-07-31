@@ -5,10 +5,68 @@ import os
 import codecs
 import json
 from functools import reduce
-
+import random
+import numpy as np
 import tensorflow as tf
 
+
+from . import vocab_utils
+
 logger = logging.getLogger(__name__)
+
+
+def makedir(path):
+    dir_name = os.path.dirname(path)
+    if not os.path.exists(dir_name):
+        os.makedirs(dir_name)
+
+
+def update_config(config):
+    # Random
+    random_seed = config.random_seed
+    if random_seed is not None and random_seed > 0:
+        logger.info("# Set random seed to %d" % random_seed)
+        random.seed(random_seed)
+        np.random.seed(random_seed)
+        tf.set_random_seed(random_seed)
+
+    # Vocab
+    vocab_utils.create_vocab(config.train_file, config.word_vocab_file, split="|", char_level=False)
+    vocab_utils.create_vocab(config.train_file, config.char_vocab_file, split="|", char_level=True)
+    word_vocab, word_vocab_size = vocab_utils.load_vocab(config.word_vocab_file)
+    char_vocab, char_vocab_size = vocab_utils.load_vocab(config.char_vocab_file)
+    logger.info("# Updating config.word_vocab_size: {} -> {}".format(str(config.word_vocab_size), str(word_vocab_size)))
+    logger.info("# Updating config.char_vocab_size: {} -> {}".format(str(config.char_vocab_size), str(char_vocab_size)))
+    config.word_vocab_size = word_vocab_size
+    config.char_vocab_size = char_vocab_size
+
+    # Pretrained Embeddings
+    if config.word_embed_file:
+        embed_dict, word_embed_size = vocab_utils.load_embed_txt(config.word_embed_file)
+        logger.info("# Updating config.embed_size: {} -> {}".format(str(config.word_embed_size), str(word_embed_size)))
+        config.word_embed_size = word_embed_size
+
+    # Model output directory
+    logger.info("# Creating model directory %s ..." % config.model_dir)
+    makedir(config.model_dir)
+
+    # Log output directory
+    logger.info("# Creating log directory %s ..." % config.log_dir)
+    makedir(config.log_dir)
+
+    # Evaluation
+    for metric in config.metrics.split(","):
+        best_metric_label = "best_%s" % metric
+        best_metric_dir = os.path.join(config.model_dir, "%s/" % best_metric_label)
+        setattr(config, "%s_dir" % best_metric_label, best_metric_dir)
+        makedir(best_metric_dir)
+
+    # print configuration
+    logger.info("# Hparams")
+    # for arg in vars(config):
+    #     logger.info("  {}\t{}".format(arg, getattr(config, arg)))
+    for arg, value in config.__flags.items():
+        logger.info("  {}\t{}".format(arg, str(value.value)))
 
 
 def get_config_proto(log_device_placement=False, allow_soft_placement=True,
