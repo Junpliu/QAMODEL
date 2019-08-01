@@ -1,5 +1,5 @@
-# /usr/bin/python
-# -*- coding:utf-8 -*-
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 """
 Author: changjingdong
 Date: 20190614
@@ -35,6 +35,7 @@ parser.add_argument("--model_path", type=str, default="model/model")
 parser.add_argument("--embedding_dim", type=int, default=200)
 parser.add_argument("--embedding_file", type=str, default='../../wdic/word2vec.dict')
 parser.add_argument("--stopword_file", type=str, default='../../wdic/stopwords.txt')
+parser.add_argument("--ntree_limit", type=int, default=0, help="ntree_limit")
 args = parser.parse_args()
 
 common_function.print_args(args)
@@ -85,18 +86,10 @@ xgb.DMatrix(x_test).save_binary('test.buffer')
 bst = xgb.Booster()  # init model
 bst.load_model(args.model_path)  # load model
 
-best_ntree_limit = 634
-p_test = bst.predict(xgb.DMatrix(x_test), ntree_limit=best_ntree_limit)
+p_test = bst.predict(xgb.DMatrix(x_test), ntree_limit=args.ntree_limit)
 df_sub = pd.DataFrame(
     {'user_query': test_texts_1, 'candidate_query': test_texts_2, 'label': test_labels, 'score': p_test.ravel()})
-df_sub.to_csv(args.pred_data_file + str(best_ntree_limit),
+df_sub.to_csv(args.pred_data_file + str(args.ntree_limit),
               header=False, index=False, encoding='utf-8', sep="\t",
               columns=['user_query', 'candidate_query', 'label', 'score'])
 
-best_ntree_limit = 584
-p_test = bst.predict(xgb.DMatrix(x_test), ntree_limit=best_ntree_limit)
-df_sub = pd.DataFrame(
-    {'user_query': test_texts_1, 'candidate_query': test_texts_2, 'label': test_labels, 'score': p_test.ravel()})
-df_sub.to_csv(args.pred_data_file + str(best_ntree_limit),
-              header=False, index=False, encoding='utf-8', sep="\t",
-              columns=['user_query', 'candidate_query', 'label', 'score'])

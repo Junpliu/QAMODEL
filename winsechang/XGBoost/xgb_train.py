@@ -1,5 +1,5 @@
-# /usr/bin/python
-# -*- coding:utf-8 -*-
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 """
 Author: changjingdong
 Date: 20190614
@@ -7,7 +7,6 @@ Desc: xgboost model to predict similar questions
 
 Update: aitingliu, 20190731
 """
-import os
 from collections import Counter
 import logging
 import argparse
@@ -23,7 +22,7 @@ logging.basicConfig(level=logging.INFO,
                     datefmt='%Y-%m-%d %H:%M:%S')
 logger = logging.getLogger()
 
-os.environ['CUDA_VISIBLE_DEVICES'] = '2'
+# os.environ['CUDA_VISIBLE_DEVICES'] = '2'
 
 parser = argparse.ArgumentParser()
 parser.register("type", "bool", lambda v: v.lower() == "true")
@@ -41,8 +40,26 @@ parser.add_argument("--model_path", type=str, default="model/model")
 parser.add_argument("--embedding_dim", type=int, default=200)
 parser.add_argument("--embedding_file", type=str, default='../../wdic/word2vec.dict')
 parser.add_argument("--stopword_file", type=str, default='../../wdic/stopwords.txt')
+parser.add_argument("--early_stopping_rounds", type=int, default=50)
+parser.add_argument("--num_boost_round", type=int, default=2500)
+parser.add_argument("--booster", type=str, default="gbtree", help="[default= gbtree ]")
+parser.add_argument("--eta", type=float, default=0.08, help="[default=0.3]")
+parser.add_argument("--gamma", type=float, default=0, help="[default=0]")
+parser.add_argument("--max_depth", type=float, default=6, help="[default=6]")
+parser.add_argument("--min_child_weight", type=float, default=1, help="[default=1]")
+parser.add_argument("--max_delta_step", type=float, default=0, help="[default=0]")
+parser.add_argument("--subsample", type=float, default=1, help="[default=1]")
+parser.add_argument("--colsample_bytree", type=float, default=1, help="[default=1]")
+parser.add_argument("--colsample_bylevel", type=float, default=1, help="[default=1]")
+parser.add_argument("--lamda", type=float, default=1, help="[default=1]")
+parser.add_argument("--alpha", type=float, default=0, help="[default=0]")
+parser.add_argument("--scale_pos_weight", type=float, default=1, help="[default=1]")
+parser.add_argument("--objective", type=str, default="binary:logistic")
+parser.add_argument("--eval_metric", type=str, default="error,logloss")
 args = parser.parse_args()
-
+"""
+https://xgboost.readthedocs.io/en/latest/parameter.html
+"""
 common_function.print_args(args)
 
 common_function.makedir(args.pred_data_file)
@@ -128,23 +145,23 @@ x_train.columns = [str(i) for i in range(x_train.shape[1])]
 x_valid.columns = [str(i) for i in range(x_valid.shape[1])]
 x_test.columns = [str(i) for i in range(x_test.shape[1])]
 
+
 ############## train models ################################################
 params = {
-    "booster": "gbtree",  # [default= gbtree ]
-
-    "eta": 0.3,  # [default=0.3]
-    "gamma": 0,  # [default=0]
-    "max_depth": 6,  # [default=6]
-    "min_child_weight": 1,  # [default=1]
-    "max_delta_step": 0,  # [default=0]
-    "subsample": 1,  # [default=1]
-    "colsample_bytree": 1,  # [default=1]
-    "colsample_bylevel": 1,  # [default=1]
-    "lambda": 1,  # [default=1]
-    "alpha": 0,  # [default=0]
-    "scale_pos_weight": 1,  # [default=1]
-    "objective": "binary:logistic",
-    "eval_metric": ['error', 'logloss']
+    "booster": args.booster,
+    "eta": args.eta,
+    "gamma": args.gamma,
+    "max_depth": args.max_depth,
+    "min_child_weight": args.min_child_weight,
+    "max_delta_step": args.max_delta_step,
+    "subsample": args.subsample,
+    "colsample_bytree": args.colsample_bytree,
+    "colsample_bylevel": args.colsample_bylevel,
+    "lambda": args.lamda,
+    "alpha": args.alpha,
+    "scale_pos_weight": args.scale_pos_weight,
+    "objective": args.objective,
+    "eval_metric": list(args.eval_metric.split(","))
 }
 
 d_train = xgb.DMatrix(x_train, label=labels)
@@ -153,7 +170,7 @@ d_valid = xgb.DMatrix(x_valid, label=val_labels)
 
 watchlist = [(d_train, 'train'), (d_valid, 'valid')]
 
-bst = xgb.train(params, d_train, 2500, watchlist, early_stopping_rounds=50)
+bst = xgb.train(params, d_train, args.num_boost_round, watchlist, early_stopping_rounds=args.early_stopping_rounds)
 bst.save_model(args.model_path)
 bst.dump_model(args.model_path + '.dump')
 

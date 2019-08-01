@@ -11,7 +11,7 @@ import tensorflow as tf
 from utils import misc_utils
 import train
 import inference
-from models import APCNN
+from layers import APCNN
 
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s %(filename)s[line:%(lineno)d] %(levelname)s - %(message)s',

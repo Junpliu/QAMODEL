@@ -11,7 +11,7 @@ import tensorflow as tf
 from utils import misc_utils
 import train
 import inference
-from models import SCWLSTM
+from layers import SCWLSTM
 
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s %(filename)s[line:%(lineno)d] %(levelname)s - %(message)s',
@@ -28,6 +28,8 @@ FLAGS = flags.FLAGS
 # save model path
 flags.DEFINE_string("model_dir", "/ceph/qbkg/aitingliu/qq/src/model/SCWLSTM/", "model path")
 flags.DEFINE_string("log_dir", "/ceph/qbkg/aitingliu/qq/src/logdir/SCWLSTM/", "logdir path")
+flags.DEFINE_string("export_path", "/ceph/qbkg/aitingliu/qq/src/model/SCWLSTM/tfmodel/", "tf.serving model path")
+flags.DEFINE_string("model_version", "20190731", "model version")
 
 # data file path
 flags.DEFINE_string("train_file", "/ceph/qbkg/aitingliu/qq/data/20190726/raw/train.txt", "Training data file.")
@@ -99,6 +101,8 @@ def main(unused):
     if FLAGS.train:
         logger.info("TRAIN")
         train.train(FLAGS, model_creator)
+        # TODO: export model for serving
+        train.export_model(FLAGS, model_creator)
 
     # evaluate
     if FLAGS.test:

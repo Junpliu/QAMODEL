@@ -14,6 +14,7 @@ import numpy as np
 import sklearn
 
 from . import vocab_utils
+
 # import vocab_utils
 
 logger = logging.getLogger(__name__)
@@ -64,6 +65,68 @@ def split_data(raw_file, train_file, dev_file, test_file, dev_ratio=0.1, test_ra
 
 
 #######################################  load data & batch iterator  ########################################
+def process_line(line,
+                 word_index,
+                 char_index,
+                 w_max_len1=40,
+                 w_max_len2=40,
+                 c_max_len1=40,
+                 c_max_len2=40,
+                 text_split="|",
+                 split="\t",
+                 mode="train"):
+    line = line.strip()
+    if mode == "infer":
+        line = line.split(split)
+        text1, text2 = line[0], line[1]
+        label = None
+    else:
+        text1, text2, label = line.split(split)
+    ## text to list
+    wordlist1 = vocab_utils.text_to_word_list(text1, split=text_split)
+    wordlist2 = vocab_utils.text_to_word_list(text2, split=text_split)
+
+    ## word list to word index
+    word_indexlist1 = vocab_utils.list_to_index(wordlist1, word_index, unk_id=vocab_utils.UNK_ID)
+    word_indexlist2 = vocab_utils.list_to_index(wordlist2, word_index, unk_id=vocab_utils.UNK_ID)
+
+    # print(wordlist1)
+    # print(wordlist2)
+
+    ## list padding
+    word_len1, word_indexlist1 = vocab_utils.list_pad(word_indexlist1, max_len=w_max_len1,
+                                                      pad_id=vocab_utils.PAD_ID)
+    word_len2, word_indexlist2 = vocab_utils.list_pad(word_indexlist2, max_len=w_max_len2,
+                                                      pad_id=vocab_utils.PAD_ID)
+
+    # print(word_len1, word_indexlist1)
+    # print(word_len2, word_indexlist2)
+
+    ## text to list
+    charlist1 = vocab_utils.text_to_char_list(text1, split=text_split)
+    charlist2 = vocab_utils.text_to_char_list(text2, split=text_split)
+
+    # print(charlist1)
+    # print(charlist2)
+
+    ## char list to char index
+    char_indexlist1 = vocab_utils.list_to_index(charlist1, char_index, unk_id=vocab_utils.UNK_ID)
+    char_indexlist2 = vocab_utils.list_to_index(charlist2, char_index, unk_id=vocab_utils.UNK_ID)
+
+    ## list padding
+    char_len1, char_indexlist1 = vocab_utils.list_pad(char_indexlist1, max_len=c_max_len1,
+                                                      pad_id=vocab_utils.PAD_ID)
+    char_len2, char_indexlist2 = vocab_utils.list_pad(char_indexlist2, max_len=c_max_len2,
+                                                      pad_id=vocab_utils.PAD_ID)
+
+    # print(char_len1, char_indexlist1)
+    # print(char_len2, char_indexlist2)
+
+    res = [word_indexlist1, word_indexlist2, word_len1, word_len2,
+           char_indexlist1, char_indexlist2, char_len1, char_len2, label]
+
+    return res
+
 
 def load_data(data_file,
               word_index_file,
@@ -85,57 +148,25 @@ def load_data(data_file,
     i = 0
     for line in f:
         i += 1
-        line = line.strip()
-        if mode == "infer":
-            line = line.split(split)
-            text1, text2 = line[0], line[1]
-        else:
-            text1, text2, label = line.split(split)
-            labels.append(int(label))
-        ## text to list
-        wordlist1 = vocab_utils.text_to_word_list(text1, split=text_split)
-        wordlist2 = vocab_utils.text_to_word_list(text2, split=text_split)
+        word_indexlist1, word_indexlist2, word_len1, word_len2, char_indexlist1, char_indexlist2, char_len1, char_len2, label = \
+            process_line(
+                line,
+                word_index,
+                char_index,
+                w_max_len1=w_max_len1,
+                w_max_len2=w_max_len2,
+                c_max_len1=c_max_len1,
+                c_max_len2=c_max_len2,
+                text_split=text_split,
+                split=split,
+                mode=mode)
 
-        ## word list to word index
-        word_indexlist1 = vocab_utils.list_to_index(wordlist1, word_index, unk_id=vocab_utils.UNK_ID)
-        word_indexlist2 = vocab_utils.list_to_index(wordlist2, word_index, unk_id=vocab_utils.UNK_ID)
-
-        # print(wordlist1)
-        # print(wordlist2)
-
-        ## list padding
-        word_len1, word_indexlist1 = vocab_utils.list_pad(word_indexlist1, max_len=w_max_len1,
-                                                          pad_id=vocab_utils.PAD_ID)
-        word_len2, word_indexlist2 = vocab_utils.list_pad(word_indexlist2, max_len=w_max_len2,
-                                                          pad_id=vocab_utils.PAD_ID)
-
-        # print(word_len1, word_indexlist1)
-        # print(word_len2, word_indexlist2)
+        labels.append(label)
 
         words1.append(word_indexlist1)
         words2.append(word_indexlist2)
         words_len1.append(word_len1)
         words_len2.append(word_len2)
-
-        ## text to list
-        charlist1 = vocab_utils.text_to_char_list(text1, split=text_split)
-        charlist2 = vocab_utils.text_to_char_list(text2, split=text_split)
-
-        # print(charlist1)
-        # print(charlist2)
-
-        ## char list to char index
-        char_indexlist1 = vocab_utils.list_to_index(charlist1, char_index, unk_id=vocab_utils.UNK_ID)
-        char_indexlist2 = vocab_utils.list_to_index(charlist2, char_index, unk_id=vocab_utils.UNK_ID)
-
-        ## list padding
-        char_len1, char_indexlist1 = vocab_utils.list_pad(char_indexlist1, max_len=c_max_len1,
-                                                          pad_id=vocab_utils.PAD_ID)
-        char_len2, char_indexlist2 = vocab_utils.list_pad(char_indexlist2, max_len=c_max_len2,
-                                                          pad_id=vocab_utils.PAD_ID)
-
-        # print(char_len1, char_indexlist1)
-        # print(char_len2, char_indexlist2)
 
         chars1.append(char_indexlist1)
         chars2.append(char_indexlist2)

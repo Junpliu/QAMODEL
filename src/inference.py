@@ -28,7 +28,6 @@ def run_infer(config, loaded_infer_model, infer_sess, pred_file):
                                        mode="infer")
     infer_iterator = data_helper.batch_iterator(infer_data, batch_size=config.infer_batch_size, shuffle=False, mode="infer")
 
-
     pred_labels = []
     lines = open(config.infer_file, "r", encoding="utf-8").readlines()
 
@@ -50,28 +49,25 @@ def run_infer(config, loaded_infer_model, infer_sess, pred_file):
             pred_f.write(res)
 
 
-def inference(hparams, model_creator):
-    output_file = "output_" + os.path.split(hparams.infer_file)[-1].split(".")[0]
+def inference(config, model_creator):
+    output_file = "output_" + os.path.split(config.infer_file)[-1].split(".")[0]
     # Inference output directory
-    pred_file = os.path.join(hparams.model_dir, output_file)
-    assert pred_file
-    pred_dir = os.path.dirname(pred_file)
-    if not os.path.exists(pred_dir):
-        os.makedirs(pred_dir)
+    pred_file = os.path.join(config.model_dir, output_file)
+    utils.makedir(pred_file)
 
     # Inference
-    model_dir = hparams.model_dir
+    model_dir = config.best_eval_loss_dir
 
     # Create model
     # model_creator = my_model.MyModel
-    infer_model = model_helper.create_model(model_creator, hparams, mode="infer")
+    infer_model = model_helper.create_model(model_creator, config, mode="infer")
 
     # TensorFlow model
-    config = utils.get_config_proto()
-    infer_sess = tf.Session(config=config, graph=infer_model.graph)
+    sess_config = utils.get_config_proto()
+    infer_sess = tf.Session(config=sess_config, graph=infer_model.graph)
 
     with infer_model.graph.as_default():
         loaded_infer_model, _ = model_helper.create_or_load_model(
             infer_model.model, model_dir, infer_sess, "infer")
 
-    run_infer(hparams, loaded_infer_model, infer_sess, pred_file)
+    run_infer(config, loaded_infer_model, infer_sess, pred_file)

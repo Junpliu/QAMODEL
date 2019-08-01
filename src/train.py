@@ -313,3 +313,53 @@ def train(config, model_creator):
 
     train_summary_writer.close()
     eval_summary_writer.close()
+
+
+def export_model(config, model_creator):
+
+    if not config.export_path:
+        raise ValueError("Export path must be specified.")
+    if not config.model_version:
+        raise ValueError("Export model version must be specified.")
+
+    utils.makedir(config.export_path)
+
+    # Create model
+    model = model_helper.create_model(model_creator, config, mode="infer")
+
+    # TensorFlow model
+    config_proto = utils.get_config_proto()
+    sess = tf.Session(config=config_proto, graph=model.graph)
+
+    with model.graph.as_default():
+        loaded_model, global_step = model_helper.create_or_load_model(
+            model.model, config.best_eval_loss_dir, sess, "infer")
+
+        export_dir = os.path.join(config.export_path, config.model_version)
+        builder = tf.saved_model.builder.SavedModelBuilder(export_dir)
+        inputs = {
+            "word_ids1": tf.saved_model.utils.build_tensor_info(loaded_model.word_ids1),
+            "word_ids2": tf.saved_model.utils.build_tensor_info(loaded_model.word_ids2),
+            "word_len1": tf.saved_model.utils.build_tensor_info(loaded_model.word_len1),
+            "word_len2": tf.saved_model.utils.build_tensor_info(loaded_model.word_len2),
+            "char_ids1": tf.saved_model.utils.build_tensor_info(loaded_model.char_ids1),
+            "char_ids2": tf.saved_model.utils.build_tensor_info(loaded_model.char_ids2),
+            "char_len1": tf.saved_model.utils.build_tensor_info(loaded_model.char_len1),
+            "char_len2": tf.saved_model.utils.build_tensor_info(loaded_model.char_len2)
+        }
+        outputs = {
+            "simscore": tf.saved_model.utils.build_tensor_info(loaded_model.simscore)
+        }
+        prediction_signature = (
+            tf.saved_model.signature_def_utils.build_signature_def(
+                inputs=inputs,
+                outputs=outputs,
+                method_name=tf.saved_model.signature_constants.PREDICT_METHOD_NAME))
+
+        builder.add_meta_graph_and_variables(
+            sess,
+            [tf.saved_model.tag_constants.SERVING],
+            {tf.saved_model.signature_constants.DEFAULT_SERVING_SIGNATURE_DEF_KEY: prediction_signature}
+        )
+        builder.save()
+        logger.info("Export model succeed.")
