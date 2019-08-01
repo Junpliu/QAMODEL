@@ -99,6 +99,7 @@ def total_metric(input_path, output_path, threshold):
     ACC = (TP + TN) / (P + N + 0.00000001)
     F1 = 2 * PRE * REC / (PRE + REC + 0.00000001)
 
+    print(input_path, threshold)
     print("Query级别结果指标")
     print("THRESHOLD={} P={} N={} TP={} FN={} FP={} TN={}".format(threshold, P, N, TP, FN, FP, TN))
     print("ACC : %.4f" % ACC)
