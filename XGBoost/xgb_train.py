@@ -31,6 +31,8 @@ os.environ['JOBLIB_TEMP_FOLDER'] = '/tmp'
 
 parser = argparse.ArgumentParser()
 parser.register("type", "bool", lambda v: v.lower() == "true")
+parser.add_argument("--first_train", dest='first_train', action='store_true')
+parser.add_argument("--not_first_train", dest='first_train', action='store_false')
 parser.add_argument("--train_data_file", type=str, default='/ceph/qbkg2/aitingliu/qq/data/20190726/raw/train_check.txt')
 parser.add_argument("--valid_data_file", type=str, default='/ceph/qbkg2/aitingliu/qq/data/20190726/raw/dev.txt')
 parser.add_argument("--test_data_file", type=str, default='/ceph/qbkg2/aitingliu/qq/data/20190726/raw/test_check.txt')
@@ -93,6 +95,9 @@ common_function.makedir(args.pred_data_file)
 common_function.makedir(args.word_counts_file)
 common_function.makedir(args.stopword_file)
 common_function.makedir(args.model_path)
+common_function.makedir(args.x_train_file)
+common_function.makedir(args.y_train_file)
+common_function.makedir(args.dtrain_file)
 
 
 def first_train():
@@ -367,6 +372,8 @@ def grid_search_params():
 
 
 if __name__ == "__main__":
-    # first_train()
-    # train()
-    grid_search_params()
+    if args.first_train:
+        first_train()
+    elif args.not_first_train:
+        train()
+    # grid_search_params()

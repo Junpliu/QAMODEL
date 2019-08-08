@@ -31,7 +31,7 @@ def read_file(filename):
 
 ########################################  split data   ########################################
 
-def split_data(raw_file, train_file, dev_file, test_file, dev_ratio=0.1, test_ratio=0.1):
+def split_data(raw_file, train_file, dev_file, test_file, dev_num=10000, test_num=10000):
     """split data into train/dev/test"""
     # TODO: shuffled data
     d = {}
@@ -50,18 +50,18 @@ def split_data(raw_file, train_file, dev_file, test_file, dev_ratio=0.1, test_ra
             lines.append(line)
 
     total = len(lines)
-    dev_num = int(total * dev_ratio)
-    test_num = int(total * test_ratio)
-    train = lines[:-(test_num + dev_num)]
-    dev = lines[-(test_num + dev_num):-test_num]
-    test = lines[-test_num:]
+    dev_num = int(dev_num)
+    test_num = int(test_num)
+    train = lines[:total-(test_num + dev_num)]
+    dev = lines[total-(test_num + dev_num):total-test_num]
+    test = lines[total-test_num:]
     print("# total\t%d" % total)
     print("# train\t%d" % len(train))
     print("# dev\t%d" % len(dev))
     print("# test\t%d" % len(test))
     open(train_file, "w", encoding="utf-8").writelines(train)
     open(dev_file, "w", encoding="utf-8").writelines(dev)
-    open(test_file, "w", encoding="utf-8").writelines(test)
+    # open(test_file, "w", encoding="utf-8").writelines(test)
 
 
 #######################################  load data & batch iterator  ########################################

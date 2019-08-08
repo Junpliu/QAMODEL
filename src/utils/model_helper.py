@@ -116,7 +116,7 @@ def _create_pretrained_emb_from_txt_var(vocab_file, embed_file, seed=None,
 
     emb_mat = np.array([emb_dict[token] for token in vocab], dtype=dtype.as_numpy_dtype())
 
-    with tf.variable_scope(scope or "pretrain_embedding", dtype=dtype), tf.device("/cpu:0"):
+    with tf.variable_scope(scope or "pretrain_embedding", dtype=dtype):
         emb_mat_var = tf.Variable(initial_value=emb_mat, trainable=True)
     return emb_mat_var, emb_size
 

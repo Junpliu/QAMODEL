@@ -26,29 +26,29 @@ flags = tf.flags
 FLAGS = flags.FLAGS
 
 # save model path
-flags.DEFINE_string("model_dir", "/ceph/qbkg/aitingliu/qq/src/model/SCWLSTM/", "model path")
-flags.DEFINE_string("log_dir", "/ceph/qbkg/aitingliu/qq/src/logdir/SCWLSTM/", "logdir path")
-flags.DEFINE_string("export_path", "/ceph/qbkg/aitingliu/qq/src/model/SCWLSTM/tfmodel/", "tf.serving model path")
-flags.DEFINE_string("model_version", "20190731", "model version")
+flags.DEFINE_string("model_dir", "/ceph/qbkg/aitingliu/qq/src/model/SCWLSTM/20190806/", "model path")
+flags.DEFINE_string("log_dir", "/ceph/qbkg/aitingliu/qq/src/logdir/SCWLSTM/20190806/", "logdir path")
+flags.DEFINE_string("export_path", "/ceph/qbkg/aitingliu/qq/src/model/SCWLSTM/20190806/tfmodel/", "tf.serving model path")
+flags.DEFINE_string("model_version", "20190806", "model version")
 
 # data file path
-flags.DEFINE_string("train_file", "/ceph/qbkg/aitingliu/qq/data/20190726/raw/train.txt", "Training data file.")
-flags.DEFINE_string("dev_file", "/ceph/qbkg/aitingliu/qq/data/20190726/raw/dev.txt", "Development data file.")
-flags.DEFINE_string("test_file", "/ceph/qbkg/aitingliu/qq/data/20190726/raw/test.txt", "Test data file.")
-flags.DEFINE_string("infer_file", "/ceph/qbkg/aitingliu/qq/data/20190726/raw/test.txt", "Test data file.")
-flags.DEFINE_string("word_vocab_file", "/ceph/qbkg/aitingliu/qq/data/20190726/raw/word.txt", "Word vocabulary file.")
-flags.DEFINE_string("char_vocab_file", "/ceph/qbkg/aitingliu/qq/data/20190726/raw/char.txt", "Char vocabulary file.")
+flags.DEFINE_string("train_file", "/ceph/qbkg/aitingliu/qq/data/20190806/raw/train.txt", "Training data file.")
+flags.DEFINE_string("dev_file", "/ceph/qbkg/aitingliu/qq/data/20190806/raw/dev.txt", "Development data file.")
+flags.DEFINE_string("test_file", "/ceph/qbkg/aitingliu/qq/data/20190806/raw/test.txt", "Test data file.")
+flags.DEFINE_string("infer_file", "/ceph/qbkg/aitingliu/qq/data/20190806/raw/test.txt", "Test data file.")
+flags.DEFINE_string("word_vocab_file", "/ceph/qbkg/aitingliu/qq/data/20190806/raw/word.txt", "Word vocabulary file.")
+flags.DEFINE_string("char_vocab_file", "/ceph/qbkg/aitingliu/qq/data/20190806/raw/char.txt", "Char vocabulary file.")
 flags.DEFINE_string("word_embed_file", None, "Pretrained embedding file.")
 flags.DEFINE_string("ckpt_name", "model.ckpt", "Checkpoint file name.")
 
 # train
 flags.DEFINE_integer("random_seed", 1213, "Random seed (>0, set a specific seed).")
-flags.DEFINE_float("learning_rate", 0.0001, "Learning rate. Adam: 0.001 | 0.0001")
+flags.DEFINE_float("learning_rate", 0.0005, "Learning rate. Adam: 0.001 | 0.0001")
 flags.DEFINE_string("opt", "adam", "Optimizer: adam | adadelta | adagrad | sgd | momentum | rmsprop")
 flags.DEFINE_float("max_gradient_norm", 5.0, "Clip gradients to this norm.")
 flags.DEFINE_integer("batch_size", 128, "Batch size. (default: 128)")
 flags.DEFINE_integer("epoch_step", 0, "Record where we were within an epoch.")
-flags.DEFINE_integer("num_train_epochs", 50, "Num epochs to train.")
+flags.DEFINE_integer("num_train_epochs", 20, "Num epochs to train.")
 flags.DEFINE_integer("num_keep_ckpts", 5, "Max number fo checkpoints to keep.")
 flags.DEFINE_integer("num_train_steps", 20000, "Num epochs to train.")
 flags.DEFINE_integer("steps_per_stats", 100, "How many training steps to do per stats logging.")
@@ -69,8 +69,8 @@ flags.DEFINE_integer("max_word_len1", 10, "Max length of sent1 length in word le
 flags.DEFINE_integer("max_word_len2", 10, "Max length of sent2 length in word level.")
 flags.DEFINE_integer("max_char_len1", 20, "Max length of sent1 length in char level.")
 flags.DEFINE_integer("max_char_len2", 20, "Max length of sent2 length in char level.")
-flags.DEFINE_integer("word_embed_size", 300, "Word embedding size.")
-flags.DEFINE_integer("char_embed_size", 300, "Char embedding size.")
+flags.DEFINE_integer("word_embed_size", 200, "Word embedding size.")
+flags.DEFINE_integer("char_embed_size", 200, "Char embedding size.")
 flags.DEFINE_integer("word_vocab_size", 30000, "Word vocabulary size.")
 flags.DEFINE_integer("char_vocab_size", 4000, "Char vocabulary size.")
 
