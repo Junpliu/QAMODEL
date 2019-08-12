@@ -252,6 +252,11 @@ def data_to_triplet(in_path, out_path, for_train):
     07|年|奔驰gl|450|保养|归零|方法	奔驰gl|450|保养|归零|方法   奔驰gl|450|电瓶|在|哪里
     07|年|奔驰gl|450|保养|归零|方法	奔驰gl|450|保养|归零|方法   奔驰gl|450|空调滤芯|在|哪里
 
+    Args:
+        in_path: pair数据，[raw]  query\tquestion\tlabel
+        out_path: triplet数据， [triplet]  query\t正例question\t负例question
+        for_train： 把原始文件中只包含负例或只包含正例的query删掉，保证数据一致性
+    #TODO：deprecated for_train
     """
     out_path_dir = os.path.dirname(out_path)
     if not os.path.exists(out_path_dir):

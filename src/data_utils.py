@@ -6,13 +6,13 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-RAW_DATA_PATH = "../data/20190806/raw/"
-TRIPLET_DATA_PATH = "../data/20190806/triplet/"
-FOR_TRAIN_PATH = "../data/20190806/for_train/"
+RAW_DATA_PATH = "../data/20190809/raw/"
+TRIPLET_DATA_PATH = "../data/20190809/triplet/"
+FOR_TRAIN_PATH = "../data/20190809/for_train/"
 
 ######################  split data  ############################
 
-raw_data_file = RAW_DATA_PATH + "merge_20190806_seg.txt"
+raw_data_file = RAW_DATA_PATH + "merge_20190809_check_seg.txt"
 train_data_file = RAW_DATA_PATH + "train.txt"
 dev_data_file = RAW_DATA_PATH + "dev.txt"
 test_data_file = RAW_DATA_PATH + "test.txt"
@@ -21,7 +21,7 @@ data_helper.split_data(raw_data_file, train_data_file, dev_data_file, test_data_
 
 ##############  generate triplet data and corresponding tumple data  ##########
 
-raw_data_file = RAW_DATA_PATH + "merge_20190806_seg.txt"
+raw_data_file = RAW_DATA_PATH + "merge_20190809_check_seg.txt"
 triplet_data_file = TRIPLET_DATA_PATH + "triplet.txt"
 for_train_data_file = FOR_TRAIN_PATH + "all.txt"
 data_helper.data_to_triplet(raw_data_file, triplet_data_file, for_train_data_file)
@@ -147,7 +147,62 @@ data_helper.data_to_triplet(test_data_file, test_triplet_data_file, for_train_te
 # (query,question-, 0) 6563
 # (query,question,label) 11365
 """
+"""
+# total	207794
+# train	197794
+# dev	10000
+# test	0
+../data/20190809/raw/merge_20190809_check_seg.txt
+# qq pair total 207794
+# qq pair positive 68510
+# qq pair negative 139284
+# query total 42601
+# query has positive question 28941
+# query dont have positive question 13660
+# (query,question+,question-) 122229
+# (query,question+, 1) 52954
+# (query,question-, 0) 72822
+# (query,question,label) 125776
 
+
+../data/20190809/raw/train.txt
+# qq pair total 197794
+# qq pair positive 65161
+# qq pair negative 132633
+# query total 40551
+# query has positive question 27541
+# query dont have positive question 13010
+# (query,question+,question-) 116424
+# (query,question+, 1) 50419
+# (query,question-, 0) 69336
+# (query,question,label) 119755
+
+
+../data/20190809/raw/dev.txt
+# qq pair total 10000
+# qq pair positive 3349
+# qq pair negative 6651
+# query total 2051
+# query has positive question 1400
+# query dont have positive question 651
+# (query,question+,question-) 5803
+# (query,question+, 1) 2535
+# (query,question-, 0) 3484
+# (query,question,label) 6019
+
+
+../data/20190809/raw/test.txt
+# qq pair total 10000
+# qq pair positive 3229
+# qq pair negative 6771
+# query total 2057
+# query has positive question 1366
+# query dont have positive question 691
+# (query,question+,question-) 5813
+# (query,question+, 1) 2532
+# (query,question-, 0) 3429
+# (query,question,label) 5961
+"""
 ######################  create vocabulary  ############################
 # create word/char level vocabulary based on texts in train data.
 
@@ -164,6 +219,5 @@ vocab_utils.create_vocab_from_triplet_data(train_data_file, word_index_file, spl
 vocab_utils.create_vocab_from_triplet_data(train_data_file, char_index_file, split="|", char_level=True)
 
 ######################  test batch_iterator()  ############################
-data_helper.test_batch_iter("../data/20190806/raw/toy.txt", "../data/20190806/raw/word.txt", "../data/20190806/raw/char.txt")
-data_helper.test_triplet_batch_iter("../data/20190806/triplet/toy.txt", "../data/20190806/triplet/word.txt", "../data/20190806/triplet/char.txt")
-#
+data_helper.test_batch_iter("../data/20190809/raw/toy.txt", "../data/20190809/raw/word.txt", "../data/20190809/raw/char.txt")
+data_helper.test_triplet_batch_iter("../data/20190809/triplet/toy.txt", "../data/20190809/triplet/word.txt", "../data/20190809/triplet/char.txt")

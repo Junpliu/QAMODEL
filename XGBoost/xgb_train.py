@@ -374,6 +374,6 @@ def grid_search_params():
 if __name__ == "__main__":
     if args.first_train:
         first_train()
-    elif args.not_first_train:
+    else:
         train()
     # grid_search_params()
