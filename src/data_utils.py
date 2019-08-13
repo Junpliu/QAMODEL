@@ -1,45 +1,53 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
+import pandas as pd
+import logging
+
 from utils import data_helper
 from utils import vocab_utils
-import logging
+from utils import misc_utils
 
 logger = logging.getLogger(__name__)
 
 RAW_DATA_PATH = "../data/20190809/raw/"
 TRIPLET_DATA_PATH = "../data/20190809/triplet/"
 FOR_TRAIN_PATH = "../data/20190809/for_train/"
+FOR_BERT_PATH = "../data/20190809/for_bert/"
+
+misc_utils.makedir(TRIPLET_DATA_PATH)
+misc_utils.makedir(FOR_TRAIN_PATH)
+misc_utils.makedir(FOR_BERT_PATH)
 
 ######################  split data  ############################
-
-raw_data_file = RAW_DATA_PATH + "merge_20190809_check_seg.txt"
-train_data_file = RAW_DATA_PATH + "train.txt"
-dev_data_file = RAW_DATA_PATH + "dev.txt"
-test_data_file = RAW_DATA_PATH + "test.txt"
-# TODO: 测试集固定！！！
-data_helper.split_data(raw_data_file, train_data_file, dev_data_file, test_data_file, dev_num=10000, test_num=0)
-
-##############  generate triplet data and corresponding tumple data  ##########
-
-raw_data_file = RAW_DATA_PATH + "merge_20190809_check_seg.txt"
-triplet_data_file = TRIPLET_DATA_PATH + "triplet.txt"
-for_train_data_file = FOR_TRAIN_PATH + "all.txt"
-data_helper.data_to_triplet(raw_data_file, triplet_data_file, for_train_data_file)
-
-train_data_file = RAW_DATA_PATH + "train.txt"
-train_triplet_data_file = TRIPLET_DATA_PATH + "train.txt"
-for_train_train = FOR_TRAIN_PATH + "train.txt"
-data_helper.data_to_triplet(train_data_file, train_triplet_data_file, for_train_train)
-
-dev_data_file = RAW_DATA_PATH + "dev.txt"
-dev_triplet_data_file = TRIPLET_DATA_PATH + "dev.txt"
-for_train_dev = FOR_TRAIN_PATH + "dev.txt"
-data_helper.data_to_triplet(dev_data_file, dev_triplet_data_file, for_train_dev)
-
-test_data_file = RAW_DATA_PATH + "test.txt"
-test_triplet_data_file = TRIPLET_DATA_PATH + "test.txt"
-for_train_test = FOR_TRAIN_PATH + "test.txt"
-data_helper.data_to_triplet(test_data_file, test_triplet_data_file, for_train_test)
+#
+# raw_data_file = RAW_DATA_PATH + "merge_20190809_check_seg.txt"
+# train_data_file = RAW_DATA_PATH + "train.txt"
+# dev_data_file = RAW_DATA_PATH + "dev.txt"
+# test_data_file = RAW_DATA_PATH + "test.txt"
+# # TODO: 测试集固定！！！
+# data_helper.split_data(raw_data_file, train_data_file, dev_data_file, test_data_file, dev_num=10000, test_num=0)
+#
+# ##############  generate triplet data and corresponding tumple data  ##########
+#
+# raw_data_file = RAW_DATA_PATH + "merge_20190809_check_seg.txt"
+# triplet_data_file = TRIPLET_DATA_PATH + "triplet.txt"
+# for_train_data_file = FOR_TRAIN_PATH + "all.txt"
+# data_helper.data_to_triplet(raw_data_file, triplet_data_file, for_train_data_file)
+#
+# train_data_file = RAW_DATA_PATH + "train.txt"
+# train_triplet_data_file = TRIPLET_DATA_PATH + "train.txt"
+# for_train_train = FOR_TRAIN_PATH + "train.txt"
+# data_helper.data_to_triplet(train_data_file, train_triplet_data_file, for_train_train)
+#
+# dev_data_file = RAW_DATA_PATH + "dev.txt"
+# dev_triplet_data_file = TRIPLET_DATA_PATH + "dev.txt"
+# for_train_dev = FOR_TRAIN_PATH + "dev.txt"
+# data_helper.data_to_triplet(dev_data_file, dev_triplet_data_file, for_train_dev)
+#
+# test_data_file = RAW_DATA_PATH + "test.txt"
+# test_triplet_data_file = TRIPLET_DATA_PATH + "test.txt"
+# for_train_test = FOR_TRAIN_PATH + "test.txt"
+# data_helper.data_to_triplet(test_data_file, test_triplet_data_file, for_train_test)
 
 """
 ## 20190709
@@ -206,18 +214,40 @@ data_helper.data_to_triplet(test_data_file, test_triplet_data_file, for_train_te
 ######################  create vocabulary  ############################
 # create word/char level vocabulary based on texts in train data.
 
-train_data_file = TRIPLET_DATA_PATH + "train.txt"
-word_index_file = TRIPLET_DATA_PATH + "word.txt"
-char_index_file = TRIPLET_DATA_PATH + "char.txt"
-vocab_utils.create_vocab_from_triplet_data(train_data_file, word_index_file, split="|", char_level=False)
-vocab_utils.create_vocab_from_triplet_data(train_data_file, char_index_file, split="|", char_level=True)
+# train_data_file = TRIPLET_DATA_PATH + "train.txt"
+# word_index_file = TRIPLET_DATA_PATH + "word.txt"
+# char_index_file = TRIPLET_DATA_PATH + "char.txt"
+# vocab_utils.create_vocab_from_triplet_data(train_data_file, word_index_file, split="|", char_level=False)
+# vocab_utils.create_vocab_from_triplet_data(train_data_file, char_index_file, split="|", char_level=True)
+#
+# train_data_file = RAW_DATA_PATH + "train.txt"
+# word_index_file = RAW_DATA_PATH + "word.txt"
+# char_index_file = RAW_DATA_PATH + "char.txt"
+# vocab_utils.create_vocab_from_triplet_data(train_data_file, word_index_file, split="|", char_level=False)
+# vocab_utils.create_vocab_from_triplet_data(train_data_file, char_index_file, split="|", char_level=True)
+#
+# ######################  test batch_iterator()  ############################
+# data_helper.test_batch_iter("../data/20190809/raw/toy.txt", "../data/20190809/raw/word.txt", "../data/20190809/raw/char.txt")
+# data_helper.test_triplet_batch_iter("../data/20190809/triplet/toy.txt", "../data/20190809/triplet/word.txt", "../data/20190809/triplet/char.txt")
 
-train_data_file = RAW_DATA_PATH + "train.txt"
-word_index_file = RAW_DATA_PATH + "word.txt"
-char_index_file = RAW_DATA_PATH + "char.txt"
-vocab_utils.create_vocab_from_triplet_data(train_data_file, word_index_file, split="|", char_level=False)
-vocab_utils.create_vocab_from_triplet_data(train_data_file, char_index_file, split="|", char_level=True)
 
-######################  test batch_iterator()  ############################
-data_helper.test_batch_iter("../data/20190809/raw/toy.txt", "../data/20190809/raw/word.txt", "../data/20190809/raw/char.txt")
-data_helper.test_triplet_batch_iter("../data/20190809/triplet/toy.txt", "../data/20190809/triplet/word.txt", "../data/20190809/triplet/char.txt")
+# TODO: generate data for BERT
+"""
+query\tquestion\tlabel
+id\tquery\tquestion\tlabel
+"""
+train_df = pd.read_csv(RAW_DATA_PATH + "train.txt", sep="\t", header=None, names=["q1", "q2", "label"])
+train_df["q1_char"] = train_df.q1.map(lambda x: " ".join(vocab_utils.text_to_char_list(x)))
+train_df["q2_char"] = train_df.q2.map(lambda x: " ".join(vocab_utils.text_to_char_list(x)))
+train_df.to_csv(FOR_BERT_PATH + "train.csv", sep="\t", index=True, header=False, columns=["q1_char", "q2_char", "label"])
+
+dev_df = pd.read_csv(RAW_DATA_PATH + "dev.txt", sep="\t", header=None, names=["q1", "q2", "label"])
+dev_df["q1_char"] = dev_df.q1.map(lambda x: " ".join(vocab_utils.text_to_char_list(x)))
+dev_df["q2_char"] = dev_df.q2.map(lambda x: " ".join(vocab_utils.text_to_char_list(x)))
+dev_df.to_csv(FOR_BERT_PATH + "dev.csv", sep="\t", index=True, header=False, columns=["q1_char", "q2_char", "label"])
+
+test_df = pd.read_csv(RAW_DATA_PATH + "test.txt", sep="\t", header=None, names=["q1", "q2", "label"])
+test_df["q1_char"] = test_df.q1.map(lambda x: " ".join(vocab_utils.text_to_char_list(x)))
+test_df["q2_char"] = test_df.q2.map(lambda x: " ".join(vocab_utils.text_to_char_list(x)))
+test_df.to_csv(FOR_BERT_PATH + "test.csv", sep="\t", index=True, header=False, columns=["q1_char", "q2_char", "label"])
+

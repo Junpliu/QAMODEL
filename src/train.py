@@ -41,6 +41,7 @@ def run_eval(config, eval_model, eval_sess, eval_data, model_dir, ckpt_name, sum
         # eval_sess.run(running_vars_initializer)
         eval_sess.run(tf.local_variables_initializer())
 
+    start_time = time.time()
     pred_labels = []
     eval_loss = 0.0
     step = 0
@@ -59,6 +60,7 @@ def run_eval(config, eval_model, eval_sess, eval_data, model_dir, ckpt_name, sum
                 step += 1
             except StopIteration:
                 break
+        end_time = time.time()
 
         for line, p in zip(lines, pred_labels):
             res = line.strip() + "\t" + str(p) + "\n"
@@ -66,6 +68,7 @@ def run_eval(config, eval_model, eval_sess, eval_data, model_dir, ckpt_name, sum
     pred_f.close()
 
     eval_loss /= step
+    step_time = (end_time - start_time) / step
 
     eval_summary2, acc, rec, pre, auc = eval_sess.run([
                                         loaded_eval_model.eval_summary2,
@@ -81,7 +84,7 @@ def run_eval(config, eval_model, eval_sess, eval_data, model_dir, ckpt_name, sum
               "auc": auc,
               "eval_loss": eval_loss}
 
-    logging.info("# eval loss %.4f acc %.4f rec %.4f pre %.4f f1 %.4f auc %.4f" % (eval_loss, acc, rec, pre, f1, auc))
+    logging.info("# eval loss %.4f step_time %.4f acc %.4f rec %.4f pre %.4f f1 %.4f auc %.4f" % (eval_loss, step_time, acc, rec, pre, f1, auc))
 
     summary_writer.add_summary(eval_summary1, global_step=global_step)
     summary_writer.add_summary(eval_summary2, global_step=global_step)
@@ -105,7 +108,6 @@ def run_eval(config, eval_model, eval_sess, eval_data, model_dir, ckpt_name, sum
             os.path.join(
                 getattr(config, best_metric_label + "_dir"), ckpt_name),
             loaded_eval_model.global_step)
-        print("save", best_metric_label)
 
 
 def run_test(config, eval_model, eval_sess, data_file, model_dir):
