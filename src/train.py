@@ -84,7 +84,7 @@ def run_eval(config, eval_model, eval_sess, eval_data, model_dir, ckpt_name, sum
               "auc": auc,
               "eval_loss": eval_loss}
 
-    logging.info("# eval loss %.4f step_time %.4f acc %.4f rec %.4f pre %.4f f1 %.4f auc %.4f" % (eval_loss, step_time, acc, rec, pre, f1, auc))
+    logging.info("# eval loss %.4f step_time %.4fs acc %.4f rec %.4f pre %.4f f1 %.4f auc %.4f" % (eval_loss, step_time, acc, rec, pre, f1, auc))
 
     summary_writer.add_summary(eval_summary1, global_step=global_step)
     summary_writer.add_summary(eval_summary2, global_step=global_step)
