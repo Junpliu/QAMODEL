@@ -55,6 +55,9 @@ class ESIM(object):
         self.decay_steps = config.decay_steps
         self.decay_rate = config.decay_rate
         self.use_cudnn = config.use_cudnn
+        self.use_char = config.use_char
+        self.use_word = config.use_word
+        assert self.use_char or self.use_word
 
         self.global_step = tf.Variable(0, trainable=False)
         self.build()
@@ -62,24 +65,26 @@ class ESIM(object):
     def init_embedding(self):
         """Init embedding."""
         with tf.variable_scope("embed"):
-            self.word_embedding, self.word_embed_size = \
-                model_helper.create_or_load_embed("word_embedding",
-                                                  self.word_vocab_file,
-                                                  self.word_embed_file,
-                                                  self.word_vocab_size,
-                                                  self.word_embed_size,
-                                                  dtype=self.dtype,
-                                                  trainable=True,
-                                                  seed=self.random_seed)
-            self.char_embedding, self.char_embed_size = \
-                model_helper.create_or_load_embed("char_embedding",
-                                                  self.char_vocab_file,
-                                                  None,
-                                                  self.char_vocab_size,
-                                                  self.char_embed_size,
-                                                  dtype=self.dtype,
-                                                  trainable=True,
-                                                  seed=self.random_seed)
+            if self.use_word:
+                self.word_embedding, self.word_embed_size = \
+                    model_helper.create_or_load_embed("word_embedding",
+                                                      self.word_vocab_file,
+                                                      self.word_embed_file,
+                                                      self.word_vocab_size,
+                                                      self.word_embed_size,
+                                                      dtype=self.dtype,
+                                                      trainable=True,
+                                                      seed=self.random_seed)
+            if self.use_char:
+                self.char_embedding, self.char_embed_size = \
+                    model_helper.create_or_load_embed("char_embedding",
+                                                      self.char_vocab_file,
+                                                      None,
+                                                      self.char_vocab_size,
+                                                      self.char_embed_size,
+                                                      dtype=self.dtype,
+                                                      trainable=True,
+                                                      seed=self.random_seed)
 
     def add_placeholders(self):
         with tf.variable_scope("inputs"):
@@ -268,33 +273,39 @@ class ESIM(object):
             # ================== word representation layer ==================
             self.init_embedding()
             # TODO: add word level representation
-            word_x1_enc = tf.nn.embedding_lookup(self.word_embedding, self.word_ids1, "word_embed1")
-            word_x2_enc = tf.nn.embedding_lookup(self.word_embedding, self.word_ids2, "word_embed2")
-            word_x1_mask = tf.sequence_mask(self.word_len1, self.max_word_len1, dtype=tf.float32)
-            word_x2_mask = tf.sequence_mask(self.word_len2, self.max_word_len2, dtype=tf.float32)
+            if self.use_word:
+                word_x1_enc = tf.nn.embedding_lookup(self.word_embedding, self.word_ids1, "word_embed1")
+                word_x2_enc = tf.nn.embedding_lookup(self.word_embedding, self.word_ids2, "word_embed2")
+                word_x1_mask = tf.sequence_mask(self.word_len1, self.max_word_len1, dtype=tf.float32)
+                word_x2_mask = tf.sequence_mask(self.word_len2, self.max_word_len2, dtype=tf.float32)
 
-            char_x1_enc = tf.nn.embedding_lookup(self.char_embedding, self.char_ids1, "char_embed1")
-            char_x2_enc = tf.nn.embedding_lookup(self.char_embedding, self.char_ids2, "char_embed2")
-            char_x1_mask = tf.sequence_mask(self.char_len1, self.max_char_len1, dtype=tf.float32)
-            char_x2_mask = tf.sequence_mask(self.char_len2, self.max_char_len2, dtype=tf.float32)
+                word_x1_enc = tf.transpose(word_x1_enc, [1, 0, 2])
+                word_x2_enc = tf.transpose(word_x2_enc, [1, 0, 2])
+                word_x1_mask = tf.transpose(word_x1_mask, [1, 0])
+                word_x2_mask = tf.transpose(word_x2_mask, [1, 0])
 
-            word_x1_enc = tf.transpose(word_x1_enc, [1, 0, 2])
-            word_x2_enc = tf.transpose(word_x2_enc, [1, 0, 2])
-            word_x1_mask = tf.transpose(word_x1_mask, [1, 0])
-            word_x2_mask = tf.transpose(word_x2_mask, [1, 0])
+                word_logit = self.esim(word_x1_enc, word_x1_mask,
+                                       word_x2_enc, word_x2_mask, "word", False)
+            if self.use_char:
+                char_x1_enc = tf.nn.embedding_lookup(self.char_embedding, self.char_ids1, "char_embed1")
+                char_x2_enc = tf.nn.embedding_lookup(self.char_embedding, self.char_ids2, "char_embed2")
+                char_x1_mask = tf.sequence_mask(self.char_len1, self.max_char_len1, dtype=tf.float32)
+                char_x2_mask = tf.sequence_mask(self.char_len2, self.max_char_len2, dtype=tf.float32)
 
-            char_x1_enc = tf.transpose(char_x1_enc, [1, 0, 2])
-            char_x2_enc = tf.transpose(char_x2_enc, [1, 0, 2])
-            char_x1_mask = tf.transpose(char_x1_mask, [1, 0])
-            char_x2_mask = tf.transpose(char_x2_mask, [1, 0])
+                char_x1_enc = tf.transpose(char_x1_enc, [1, 0, 2])
+                char_x2_enc = tf.transpose(char_x2_enc, [1, 0, 2])
+                char_x1_mask = tf.transpose(char_x1_mask, [1, 0])
+                char_x2_mask = tf.transpose(char_x2_mask, [1, 0])
 
-            word_logit = self.esim(word_x1_enc, word_x1_mask,
-                                   word_x2_enc, word_x2_mask, "word", False)
+                char_logit = self.esim(char_x1_enc, char_x1_mask,
+                                       char_x2_enc, char_x2_mask, "char", False)
 
-            char_logit = self.esim(char_x1_enc, char_x1_mask,
-                                   char_x2_enc, char_x2_mask, "char", False)
-
-            logit = tf.concat([word_logit, char_logit], axis=-1)
+            if self.use_word and self.use_char:
+                logit = tf.concat([word_logit, char_logit], axis=-1)
+            elif self.use_word:
+                logit = word_logit
+            elif self.use_char:
+                logit = char_logit
 
             # final classifier
             with tf.variable_scope("classifier", reuse=tf.AUTO_REUSE):

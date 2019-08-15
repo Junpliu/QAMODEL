@@ -261,13 +261,13 @@ def data_to_triplet(in_path, out_path, for_train):
     out_path_dir = os.path.dirname(out_path)
     if not os.path.exists(out_path_dir):
         os.makedirs(out_path_dir)
-    for_train_dir = os.path.dirname(for_train)
-    if not os.path.exists(for_train_dir):
-        os.makedirs(for_train_dir)
+    # for_train_dir = os.path.dirname(for_train)
+    # if not os.path.exists(for_train_dir):
+    #     os.makedirs(for_train_dir)
 
     f = open(in_path, "r", encoding="utf-8")
     fw = open(out_path, "w", encoding="utf-8")
-    f2 = open(for_train, "w", encoding="utf-8")
+    # f2 = open(for_train, "w", encoding="utf-8")
 
     c1, c0 = 0, 0  # 统计正负例数量
     d = {}
@@ -308,16 +308,16 @@ def data_to_triplet(in_path, out_path, for_train):
                 for i in range(len(v[1])):
                     tmp = "{}\t{}\t{}\n".format(k, v[1][i], "1")
                     count_p += 1
-                    f2.write(tmp)
+                    # f2.write(tmp)
                 for j in range(len(v[0])):
                     tmp = "{}\t{}\t{}\n".format(k, v[0][j], "0")
                     count_n += 1
-                    f2.write(tmp)
+                    # f2.write(tmp)
 
         else:
             count0 += 1
     fw.close()
-    f2.close()
+    # f2.close()
     print(in_path)
     print("# qq pair total %d" % (c1 + c0))
     print("# qq pair positive %d" % c1)
@@ -366,10 +366,8 @@ def load_triplet_data(data_file,
         i += 1
         line = line.strip()
         if mode == "infer":
-            line = line.split(split)
-            text1, text2 = line[0], line[1]
-            label = int(line[2])
-            labels.append(label)
+            text1, text2, label = line.split(split)
+            labels.append(int(label))
         else:
             text1, text2, text3 = line.split(split)
 

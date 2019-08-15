@@ -41,6 +41,7 @@ def run_eval(config, eval_model, eval_sess, eval_data, model_dir, ckpt_name, sum
         # eval_sess.run(running_vars_initializer)
         eval_sess.run(tf.local_variables_initializer())
 
+    start_time = time.time()
     pred_labels = []
     eval_loss = 0.0
     step = 0
@@ -60,15 +61,16 @@ def run_eval(config, eval_model, eval_sess, eval_data, model_dir, ckpt_name, sum
                 step += 1
             except StopIteration:
                 break
+        end_time = time.time()
 
         for line, p in zip(lines, pred_labels):
             res = line.strip() + "\t" + str(p) + "\n"
             pred_f.write(res)
-    pred_f.close()
 
     eval_loss /= step
+    step_time = (end_time - start_time) / step
 
-    logging.info("# eval loss %.4f" % eval_loss)
+    logging.info("# eval loss %.4f step time %.4fs" % (eval_loss, step_time))
 
     summary_writer.add_summary(eval_summary1, global_step=global_step)
 
@@ -106,6 +108,7 @@ def run_test(config, infer_model, infer_sess, data_file, model_dir):
                                                text_split="|", split="\t", mode="infer")
     infer_iterator = data_helper.triplet_batch_iterator(infer_data, batch_size=config.batch_size, shuffle=False, mode="infer")
 
+    start_time = time.time()
     step = 0
     pred_labels = []
     lines = open(data_file, "r", encoding="utf-8").readlines()
@@ -115,15 +118,19 @@ def run_test(config, infer_model, infer_sess, data_file, model_dir):
             try:
                 b_word_ids1, b_word_ids2, b_word_len1, b_word_len2, b_char_ids1, b_char_ids2, b_char_len1, b_char_len2, b_labels = next(infer_iterator)
                 pred = loaded_infer_model.infer(infer_sess, b_word_ids1, b_word_ids2, b_word_len1, b_word_len2, b_char_ids1, b_char_ids2, b_char_len1, b_char_len2, b_labels)
+                print(pred)
                 pred_labels.extend(pred)
                 step += 1
             except StopIteration:
                 break
+        end_time = time.time()
 
         for line, p in zip(lines, pred_labels):
             res = line.strip() + "\t" + str(p) + "\n"
             pred_f.write(res)
-    pred_f.close()
+
+    step_time = (end_time - start_time) / step
+    logger.info("# predict step time %.4fs" % step_time)
 
 
 def test(config, model_creator):
@@ -131,17 +138,17 @@ def test(config, model_creator):
     best_metric_label = "best_eval_loss"
     model_dir = getattr(config, best_metric_label + "_dir")
 
-    logger.info("Start evaluating saved best model on training-set.")
-    eval_model = model_helper.create_model(model_creator, config, mode="eval")
-    session_config = utils.get_config_proto()
-    eval_sess = tf.Session(config=session_config, graph=eval_model.graph)
-    run_test(config, eval_model, eval_sess, config.train_file, model_dir)
-
-    logger.info("Start evaluating saved best model on dev-set.")
-    eval_model = model_helper.create_model(model_creator, config, mode="eval")
-    session_config = utils.get_config_proto()
-    eval_sess = tf.Session(config=session_config, graph=eval_model.graph)
-    run_test(config, eval_model, eval_sess, config.dev_file, model_dir)
+    # logger.info("Start evaluating saved best model on training-set.")
+    # eval_model = model_helper.create_model(model_creator, config, mode="eval")
+    # session_config = utils.get_config_proto()
+    # eval_sess = tf.Session(config=session_config, graph=eval_model.graph)
+    # run_test(config, eval_model, eval_sess, config.train_file, model_dir)
+    #
+    # logger.info("Start evaluating saved best model on dev-set.")
+    # eval_model = model_helper.create_model(model_creator, config, mode="eval")
+    # session_config = utils.get_config_proto()
+    # eval_sess = tf.Session(config=session_config, graph=eval_model.graph)
+    # run_test(config, eval_model, eval_sess, config.dev_file, model_dir)
 
     logger.info("Start evaluating saved best model on test-set.")
     infer_model = model_helper.create_model(model_creator, config, mode="infer")
@@ -149,12 +156,12 @@ def test(config, model_creator):
     infer_sess = tf.Session(config=session_config, graph=infer_model.graph)
     run_test(config, infer_model, infer_sess, config.infer_file, model_dir)
 
-    model_dir = config.model_dir
-    logger.info("Run test on test-set with latest model.")
-    infer_model = model_helper.create_model(model_creator, config, mode="infer")
-    session_config = utils.get_config_proto()
-    infer_sess = tf.Session(config=session_config, graph=infer_model.graph)
-    run_test(config, infer_model, infer_sess, config.infer_file, model_dir)
+    # model_dir = config.model_dir
+    # logger.info("Run test on test-set with latest model.")
+    # infer_model = model_helper.create_model(model_creator, config, mode="infer")
+    # session_config = utils.get_config_proto()
+    # infer_sess = tf.Session(config=session_config, graph=infer_model.graph)
+    # run_test(config, infer_model, infer_sess, config.infer_file, model_dir)
 
 
 def train(config, model_creator):

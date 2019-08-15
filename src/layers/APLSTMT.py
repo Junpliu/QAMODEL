@@ -243,10 +243,8 @@ class APLSTMT(object):
                 self.word_mlp_13 = word_mlp_13
 
     def add_loss_op(self):
-        # with tf.variable_scope("indicators"):
-        #     self.predictions = tf.nn.softmax(self.logits)
-        #     self.pred_labels = tf.argmax(self.predictions, axis=1, output_type=tf.int32)
-        #     self.simscore = self.predictions[:, -1]
+        with tf.variable_scope("indicators"):
+            self.simscore = self.word_mlp_12[:, 0]
 
         if self.mode != "infer":
             with tf.variable_scope("loss"):
@@ -341,7 +339,7 @@ class APLSTMT(object):
             self.char_len3: b_char_len3}
 
         output_feed = [self.train_summary1,
-                       self.word_mlp_12, self.losses,
+                       self.simscore, self.losses,
                        self.train_op,
                        self.global_step, self.grad_norm, self.learning_rate]
         outputs = sess.run(output_feed, input_feed)
@@ -365,7 +363,7 @@ class APLSTMT(object):
             self.char_len3: b_char_len3}
 
         output_feed = [self.eval_summary1,
-                       self.word_mlp_12, self.losses]
+                       self.simscore, self.losses]
         outputs = sess.run(output_feed, input_feed)
         return outputs
 
@@ -384,6 +382,6 @@ class APLSTMT(object):
 
             self.labels: b_labels}
 
-        output_feed = self.word_mlp_12
+        output_feed = self.simscore
         outputs = sess.run(output_feed, input_feed)
         return outputs

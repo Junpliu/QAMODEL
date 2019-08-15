@@ -107,6 +107,7 @@ class ARCIIT(object):
     def arcii(self, embed_seq1, embed_seq2, seq_len1, seq_len2, max_seq_len1, max_seq_len2, name, reuse):
         k1 = 3
         k3 = 2
+        batch_size = tf.size(seq_len1)
 
         with tf.variable_scope(name, reuse=reuse):
             x_mask = tf.cast(tf.sequence_mask(seq_len1, maxlen=max_seq_len1), dtype=tf.int32)
@@ -120,7 +121,7 @@ class ARCIIT(object):
 
             x_con1d_tile = tf.tile(tf.expand_dims(x_con1d, 2), [1, 1, max_seq_len2, 1])
             y_con1d_tile = tf.tile(tf.expand_dims(y_con1d, 1), [1, max_seq_len1, 1, 1])
-            y_reshape = tf.reshape(y_con1d_tile, shape=[self.batch_size, max_seq_len1, max_seq_len2, self.num_filters])
+            y_reshape = tf.reshape(y_con1d_tile, shape=[batch_size, max_seq_len1, max_seq_len2, self.num_filters])
             xy = tf.add(x_con1d_tile, y_reshape)
             xy_con1d = tf.multiply(xy_mask_tile, xy)
 
@@ -170,10 +171,8 @@ class ARCIIT(object):
                 self.s_13 = word_sim_13 * 0.5 + char_sim_13 * 0.5
 
     def add_loss_op(self):
-        # with tf.variable_scope("indicators"):
-        #     self.predictions = tf.nn.softmax(self.logits)
-        #     self.pred_labels = tf.argmax(self.predictions, axis=1, output_type=tf.int32)
-        #     self.simscore = self.predictions[:, -1]
+        with tf.variable_scope("indicators"):
+            self.simscore = self.s_12[:, 0]
 
         if self.mode != "infer":
             with tf.variable_scope("loss"):
@@ -268,7 +267,7 @@ class ARCIIT(object):
             self.char_len3: b_char_len3}
 
         output_feed = [self.train_summary1,
-                       self.s_12, self.losses,
+                       self.simscore, self.losses,
                        self.train_op,
                        self.global_step, self.grad_norm, self.learning_rate]
         outputs = sess.run(output_feed, input_feed)
@@ -292,7 +291,7 @@ class ARCIIT(object):
             self.char_len3: b_char_len3}
 
         output_feed = [self.eval_summary1,
-                       self.s_12, self.losses]
+                       self.simscore, self.losses]
         outputs = sess.run(output_feed, input_feed)
         return outputs
 
@@ -311,6 +310,6 @@ class ARCIIT(object):
 
             self.labels: b_labels}
 
-        output_feed = self.s_12
+        output_feed = self.simscore
         outputs = sess.run(output_feed, input_feed)
         return outputs

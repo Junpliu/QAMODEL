@@ -100,6 +100,7 @@ class ARCII(object):
     def arcii(self, embed_seq1, embed_seq2, seq_len1, seq_len2, max_seq_len1, max_seq_len2, name):
         k1 = 3
         k3 = 2
+        batch_size = tf.size(seq_len1)
 
         with tf.variable_scope(name):
             x_mask = tf.cast(tf.sequence_mask(seq_len1, maxlen=max_seq_len1), dtype=tf.int32)
@@ -114,7 +115,7 @@ class ARCII(object):
             y_con1d = con1d2(embed_seq2)
             x_con1d_tile = tf.tile(tf.expand_dims(x_con1d, 2), [1, 1, max_seq_len2, 1])
             y_con1d_tile = tf.tile(tf.expand_dims(y_con1d, 1), [1, max_seq_len1, 1, 1])
-            y_reshape = tf.reshape(y_con1d_tile, shape=[self.batch_size, max_seq_len1, max_seq_len2, self.num_filters])
+            y_reshape = tf.reshape(y_con1d_tile, shape=[batch_size, max_seq_len1, max_seq_len2, self.num_filters])
             xy = tf.add(x_con1d_tile, y_reshape)
             xy_con1d = tf.multiply(xy_mask_tile, xy)
 

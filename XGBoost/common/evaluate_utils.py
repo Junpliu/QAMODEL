@@ -66,7 +66,7 @@ def total_metric(input_path, output_path, threshold):
     for q1 in d:
         terms = d[q1]
 
-        sort_l = [(predict, (q2, label, predict)) for q2, label, predict in terms]  # 针对每一个query的所有question预测结果排序
+        sort_l = [(float(predict), (q2, label, predict)) for q2, label, predict in terms]  # 针对每一个query的所有question预测结果排序
         sort_l.sort(reverse=True)
         terms_str = "\t".join(["-".join(list(term[1])) for term in sort_l])
         # terms_str = str(sort_l)
@@ -99,7 +99,7 @@ def total_metric(input_path, output_path, threshold):
     ACC = (TP + TN) / (P + N + 0.00000001)
     F1 = 2 * PRE * REC / (PRE + REC + 0.00000001)
 
-    print(input_path, threshold)
+    print(input_path, output_path, threshold)
     print("Query级别结果指标")
     print("THRESHOLD={} P={} N={} TP={} FN={} FP={} TN={}".format(threshold, P, N, TP, FN, FP, TN))
     print("ACC : %.4f" % ACC)

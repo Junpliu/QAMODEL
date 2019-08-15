@@ -26,9 +26,9 @@ flags = tf.flags
 FLAGS = flags.FLAGS
 
 # save model path
-flags.DEFINE_string("model_dir", "/ceph/qbkg/aitingliu/qq/src/model/ESIM/20190809/", "model path")
-flags.DEFINE_string("log_dir", "/ceph/qbkg/aitingliu/qq/src/logdir/ESIM/20190809/", "logdir path")
-flags.DEFINE_string("export_path", "/ceph/qbkg/aitingliu/qq/src/model/ESIM/20190809/tfmodel/", "tf.serving model path")
+flags.DEFINE_string("model_dir", "/ceph/qbkg/aitingliu/qq/src/model/20190809/ESIM3/", "model path")
+flags.DEFINE_string("log_dir", "/ceph/qbkg/aitingliu/qq/src/logdir/20190809/ESIM3/", "logdir path")
+flags.DEFINE_string("export_path", "/ceph/qbkg/aitingliu/qq/src/model/20190809/ESIM3/tfmodel/", "tf.serving model path")
 flags.DEFINE_string("model_version", "20190809", "model version")
 
 # data file path
@@ -48,7 +48,7 @@ flags.DEFINE_string("opt", "adam", "Optimizer: adam | adadelta | adagrad | sgd |
 flags.DEFINE_float("max_gradient_norm", 5.0, "Clip gradients to this norm.")
 flags.DEFINE_integer("batch_size", 256, "Batch size. (default: 128)")
 flags.DEFINE_integer("epoch_step", 0, "Record where we were within an epoch.")
-flags.DEFINE_integer("num_train_epochs", 50, "Num epochs to train.")
+flags.DEFINE_integer("num_train_epochs", 30, "Num epochs to train.")
 flags.DEFINE_integer("num_keep_ckpts", 5, "Max number fo checkpoints to keep.")
 flags.DEFINE_integer("num_train_steps", 20000, "Num epochs to train.")
 flags.DEFINE_integer("steps_per_stats", 100, "How many training steps to do per stats logging.")
@@ -83,7 +83,9 @@ flags.DEFINE_float("dropout_rate", 0.8, "Dropout rate (not keep_prob) default: 0
 flags.DEFINE_float("l2_reg_lambda", 0.001, "L2 regularization lambda (default: 0.0)")
 flags.DEFINE_integer("decay_steps", 1000, "How many steps before decay learning rate. (default: 500)")
 flags.DEFINE_float("decay_rate", 0.95, "Rate of decay for learning rate. (default: 0.95)")
-flags.DEFINE_boolean("use_cudnn", True, "whether use use_cudnn for bilstm")
+flags.DEFINE_boolean("use_cudnn", False, "whether use use_cudnn for bilstm")
+flags.DEFINE_boolean("use_char", True, "whether use char level")
+flags.DEFINE_boolean("use_word", False, "whether use word level")
 
 # train/inference/evaluate flag
 flags.DEFINE_boolean("train", True, "train mode")

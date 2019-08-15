@@ -26,9 +26,9 @@ flags = tf.flags
 FLAGS = flags.FLAGS
 
 # save model path
-flags.DEFINE_string("model_dir", "/ceph/qbkg/aitingliu/qq/src/model/SCWLSTM/20190809/", "model path")
-flags.DEFINE_string("log_dir", "/ceph/qbkg/aitingliu/qq/src/logdir/SCWLSTM/20190809/", "logdir path")
-flags.DEFINE_string("export_path", "/ceph/qbkg/aitingliu/qq/src/model/SCWLSTM/20190809/tfmodel/", "tf.serving model path")
+flags.DEFINE_string("model_dir", "/ceph/qbkg/aitingliu/qq/src/model/20190809/SCWLSTM3/", "model path")
+flags.DEFINE_string("log_dir", "/ceph/qbkg/aitingliu/qq/src/logdir/20190809/SCWLSTM3/", "logdir path")
+flags.DEFINE_string("export_path", "/ceph/qbkg/aitingliu/qq/src/model/20190809/SCWLSTM3/tfmodel/", "tf.serving model path")
 flags.DEFINE_string("model_version", "20190809", "model version")
 
 # data file path
@@ -43,12 +43,12 @@ flags.DEFINE_string("ckpt_name", "model.ckpt", "Checkpoint file name.")
 
 # train
 flags.DEFINE_integer("random_seed", 1213, "Random seed (>0, set a specific seed).")
-flags.DEFINE_float("learning_rate", 0.0005, "Learning rate. Adam: 0.001 | 0.0001")
+flags.DEFINE_float("learning_rate", 0.0001, "Learning rate. Adam: 0.001 | 0.0001")
 flags.DEFINE_string("opt", "adam", "Optimizer: adam | adadelta | adagrad | sgd | momentum | rmsprop")
 flags.DEFINE_float("max_gradient_norm", 5.0, "Clip gradients to this norm.")
 flags.DEFINE_integer("batch_size", 256, "Batch size. (default: 128)")
 flags.DEFINE_integer("epoch_step", 0, "Record where we were within an epoch.")
-flags.DEFINE_integer("num_train_epochs", 30, "Num epochs to train.")
+flags.DEFINE_integer("num_train_epochs", 20, "Num epochs to train.")
 flags.DEFINE_integer("num_keep_ckpts", 5, "Max number fo checkpoints to keep.")
 flags.DEFINE_integer("num_train_steps", 20000, "Num epochs to train.")
 flags.DEFINE_integer("steps_per_stats", 100, "How many training steps to do per stats logging.")
@@ -75,7 +75,7 @@ flags.DEFINE_integer("word_vocab_size", 30000, "Word vocabulary size.")
 flags.DEFINE_integer("char_vocab_size", 4000, "Char vocabulary size.")
 
 # model configuration
-flags.DEFINE_integer("num_units", 100, "LSTM hidden size.(default: 128)")
+flags.DEFINE_integer("num_units", 200, "LSTM hidden size.(default: 128)")
 flags.DEFINE_string("unit_type", "lstm", "RNN type: lstm | gru | layer_norm_lstm")
 flags.DEFINE_integer("fc_size", 512, "Fully connected layer hidden size. (default: 1024)")
 flags.DEFINE_integer("num_classes", 2, "Number of classes.")

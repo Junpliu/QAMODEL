@@ -65,17 +65,16 @@ def run_eval(config, eval_model, eval_sess, eval_data, model_dir, ckpt_name, sum
         for line, p in zip(lines, pred_labels):
             res = line.strip() + "\t" + str(p) + "\n"
             pred_f.write(res)
-    pred_f.close()
 
     eval_loss /= step
     step_time = (end_time - start_time) / step
 
     eval_summary2, acc, rec, pre, auc = eval_sess.run([
-                                        loaded_eval_model.eval_summary2,
-                                        loaded_eval_model.accuracy,
-                                        loaded_eval_model.recall,
-                                        loaded_eval_model.precision,
-                                        loaded_eval_model.auc])
+        loaded_eval_model.eval_summary2,
+        loaded_eval_model.accuracy,
+        loaded_eval_model.recall,
+        loaded_eval_model.precision,
+        loaded_eval_model.auc])
     f1 = (2 * rec * pre) / (rec + pre + 0.00000001)
     scores = {"accuracy": acc,
               "recall": rec,
@@ -84,7 +83,8 @@ def run_eval(config, eval_model, eval_sess, eval_data, model_dir, ckpt_name, sum
               "auc": auc,
               "eval_loss": eval_loss}
 
-    logging.info("# eval loss %.4f step_time %.4fs acc %.4f rec %.4f pre %.4f f1 %.4f auc %.4f" % (eval_loss, step_time, acc, rec, pre, f1, auc))
+    logging.info("# eval loss %.4f step_time %.4fs acc %.4f rec %.4f pre %.4f f1 %.4f auc %.4f" % (
+    eval_loss, step_time, acc, rec, pre, f1, auc))
 
     summary_writer.add_summary(eval_summary1, global_step=global_step)
     summary_writer.add_summary(eval_summary2, global_step=global_step)
@@ -110,30 +110,31 @@ def run_eval(config, eval_model, eval_sess, eval_data, model_dir, ckpt_name, sum
             loaded_eval_model.global_step)
 
 
-def run_test(config, eval_model, eval_sess, data_file, model_dir):
+def run_test(config, infer_model, infer_sess, data_file, model_dir):
     output_file = "output_" + os.path.split(data_file)[-1].split(".")[0]
     pred_file = os.path.join(model_dir, output_file)
     logger.info("  predictions to output %s." % pred_file)
 
-    with eval_model.graph.as_default():
-        loaded_eval_model, global_step = model_helper.create_or_load_model(
-            eval_model.model, model_dir, eval_sess, "eval")
+    with infer_model.graph.as_default():
+        loaded_infer_model, global_step = model_helper.create_or_load_model(
+            infer_model.model, model_dir, infer_sess, "infer")
 
         # running_vars = tf.get_collection(tf.GraphKeys.LOCAL_VARIABLES, scope="metrics")
         # running_vars_initializer = tf.variables_initializer(var_list=running_vars)
 
         # TODO: tf.metrics
-        # eval_sess.run(running_vars_initializer)
-        eval_sess.run(tf.local_variables_initializer())
+        # infer_sess.run(running_vars_initializer)
+        infer_sess.run(tf.local_variables_initializer())
 
-    eval_data = data_helper.load_data(data_file, config.word_vocab_file, config.char_vocab_file,
-                                      w_max_len1=config.max_word_len1,
-                                      w_max_len2=config.max_word_len2,
-                                      c_max_len1=config.max_char_len1,
-                                      c_max_len2=config.max_char_len2,
-                                      text_split="|", split="\t")
-    eval_iterator = data_helper.batch_iterator(eval_data, batch_size=config.batch_size, shuffle=False)
+    infer_data = data_helper.load_data(data_file, config.word_vocab_file, config.char_vocab_file,
+                                       w_max_len1=config.max_word_len1,
+                                       w_max_len2=config.max_word_len2,
+                                       c_max_len1=config.max_char_len1,
+                                       c_max_len2=config.max_char_len2,
+                                       text_split="|", split="\t", mode="infer")
+    infer_iterator = data_helper.batch_iterator(infer_data, batch_size=config.batch_size, shuffle=False, mode="infer")
 
+    start_time = time.time()
     step = 0
     pred_labels = []
     lines = open(data_file, "r", encoding="utf-8").readlines()
@@ -141,20 +142,19 @@ def run_test(config, eval_model, eval_sess, data_file, model_dir):
         pred_f.write("")
         while True:
             try:
-                b_word_ids1, b_word_ids2, b_word_len1, b_word_len2, b_char_ids1, b_char_ids2, b_char_len1, b_char_len2, b_labels = next(
-                    eval_iterator)
-                _, pred, step_loss, acc_op, rec_op, pre_op, auc_op = \
-                    loaded_eval_model.eval(eval_sess, b_word_ids1, b_word_ids2, b_word_len1, b_word_len2,
-                                           b_char_ids1, b_char_ids2, b_char_len1, b_char_len2, b_labels)
+                b_word_ids1, b_word_ids2, b_word_len1, b_word_len2, b_char_ids1, b_char_ids2, b_char_len1, b_char_len2 = next(infer_iterator)
+                pred = loaded_infer_model.infer(infer_sess, b_word_ids1, b_word_ids2, b_word_len1, b_word_len2, b_char_ids1, b_char_ids2, b_char_len1, b_char_len2)
                 pred_labels.extend(pred)
                 step += 1
             except StopIteration:
                 break
-
+        end_time = time.time()
         for line, p in zip(lines, pred_labels):
             res = line.strip() + "\t" + str(p) + "\n"
             pred_f.write(res)
-    pred_f.close()
+
+    step_time = (end_time - start_time) / step
+    logger.info("# predict step time %.4fs" % step_time)
 
 
 def test(config, model_creator):
@@ -180,12 +180,12 @@ def test(config, model_creator):
     eval_sess = tf.Session(config=session_config, graph=eval_model.graph)
     run_test(config, eval_model, eval_sess, config.test_file, model_dir)
 
-    model_dir = config.model_dir
-    logger.info("Run test on test-set with latest model.")
-    eval_model = model_helper.create_model(model_creator, config, mode="eval")
-    session_config = utils.get_config_proto()
-    eval_sess = tf.Session(config=session_config, graph=eval_model.graph)
-    run_test(config, eval_model, eval_sess, config.test_file, model_dir)
+    # model_dir = config.model_dir
+    # logger.info("Run test on test-set with latest model.")
+    # eval_model = model_helper.create_model(model_creator, config, mode="eval")
+    # session_config = utils.get_config_proto()
+    # eval_sess = tf.Session(config=session_config, graph=eval_model.graph)
+    # run_test(config, eval_model, eval_sess, config.test_file, model_dir)
 
 
 def train(config, model_creator):
@@ -303,7 +303,8 @@ def train(config, model_creator):
             # Save checkpoint
             loaded_train_model.saver.save(train_sess, ckpt_path, global_step=global_step)
             # Evaluate on dev
-            run_eval(config, eval_model, eval_sess, eval_data, model_dir, ckpt_name, eval_summary_writer, save_on_best=True)
+            run_eval(config, eval_model, eval_sess, eval_data, model_dir, ckpt_name, eval_summary_writer,
+                     save_on_best=True)
 
     logger.info("# Finished epoch %d, step %d." % (epoch_idx, global_step))
 
@@ -318,7 +319,6 @@ def train(config, model_creator):
 
 
 def export_model(config, model_creator):
-
     if not config.export_path:
         raise ValueError("Export path must be specified.")
     if not config.model_version:
