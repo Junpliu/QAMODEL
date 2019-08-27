@@ -92,3 +92,31 @@ nohup python xgb_train.py \
 #        --no_use_scwlstm \
 #        --eta 0.08 \
 #        > $LOG_DIR/train_check.log 2>&1 &
+
+# TODO: 第二版模型
+export RAW_DATA_PATH=/ceph/qbkg2/aitingliu/qq/data/20190726/raw
+export DATA_PATH=/ceph/qbkg2/aitingliu/qq/XGBoost/20190726/data_v2
+export MODEL_PATH=/ceph/qbkg2/aitingliu/qq/XGBoost/20190726/model_v2
+export TMP_PATH=/ceph/qbkg2/aitingliu/qq/XGBoost/20190726/tmp_v2
+export LOG_DIR=/ceph/qbkg2/aitingliu/qq/XGBoost/20190726/log
+nohup python xgb_train.py \
+        --not_first_train \
+        --model_path $MODEL_PATH/model \
+        --train_data_file $RAW_DATA_PATH/train_check.txt \
+        --valid_data_file $RAW_DATA_PATH/dev.txt \
+        --test_data_file $RAW_DATA_PATH/test_check.txt \
+        --x_train_file $DATA_PATH/x_train.csv \
+        --x_valid_file $DATA_PATH/x_valid.csv \
+        --x_test_file $DATA_PATH/x_test.csv \
+        --y_train_file $DATA_PATH/y_train.csv \
+        --y_valid_file $DATA_PATH/y_valid.csv \
+        --y_test_file $DATA_PATH/y_test.csv \
+        --dtrain_file $DATA_PATH/dtrain.buffer \
+        --dvalid_file $DATA_PATH/dvalid.buffer \
+        --dtest_file $DATA_PATH/dtest.buffer \
+        --word_counts_file $TMP_PATH/word_counts \
+        --feature_map_file $TMP_PATH/feature_map \
+        --pred_data_file $TMP_PATH/results_xgb.csv \
+        --no_use_scwlstm \
+        --eta 0.08 \
+        > $LOG_DIR/train_check.log 2>&1 &

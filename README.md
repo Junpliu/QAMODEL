@@ -35,4 +35,4 @@ TextCNN : [Convolutional Neural Networks for Sentence Classification](https://ar
 
 ### 模型框架图
 
-![](src/fig/QQ.png)
+![](src/fig/QQ1.png)

@@ -16,9 +16,9 @@ plt.switch_backend('agg')
 
 parser = argparse.ArgumentParser()
 parser.register("type", "bool", lambda v: v.lower() == "true")
-parser.add_argument("--model_path", type=str, default="model/model")
-parser.add_argument("--max_num_features", type=int, default=None)
-parser.add_argument("--fig_path", type=str, default="fig/")
+parser.add_argument("--model_path", type=str, default="20190809/model_with_scwlstm7/model")
+parser.add_argument("--max_num_features", type=int, default=30)
+parser.add_argument("--fig_path", type=str, default="20190809/model_with_scwlstm7/fig/")
 args = parser.parse_args()
 
 
