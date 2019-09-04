@@ -37,17 +37,6 @@ GridSearchCV: https://scikit-learn.org/stable/modules/generated/sklearn.model_se
 
 ## Result
 
-### 20190802
-
-| 模型            | 指标            | AUC    | ACC    | PRE    | REC    | F1     | 阈值 | 备注 |
-| --------------- | --------------- | ------ | ------ | ------ | ------ | ------ | ---- | ---- |
-| xgb(winsechang) | QQ Pair级别指标 |        | 0.6651 | 0.8823 | 0.1584 | 0.2686 | 0.9  |      |
-| xgb(winsechang) | Query级别指标   |        | 0.5651 | 0.8923 | 0.2836 | 0.4304 | 0.9  |      |
-| xgb             | QQ Pair级别指标 | 0.9200 | 0.6718 | 0.9854 | 0.1569 | 0.2707 | 0.87 |      |
-| xgb             | Query级别指标   |        | 0.5341 | 0.9825 | 0.2894 | 0.4471 | 0.87 |      |
-| xgb_check       | QQ Pair级别指标 |        |        |        |        |        |      |      |
-| xgb_check       | Query级别指标   |        |        |        |        |        |      |      |
-
 
 
 ## Update
