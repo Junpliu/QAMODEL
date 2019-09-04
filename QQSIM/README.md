@@ -63,7 +63,7 @@ Siamese LSTM self-attention：[A Structured Self-attentive Sentence Embedding](h
 
 ### 模型框架图
 
-![]()
+![](fig/QQ1.png)
 
 
 
